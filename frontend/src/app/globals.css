@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+:root {
+  --obsidian: #0b0e14;
+  --obsidian-2: #10141c;
+  --paper: #f4f5f7;
+  --signal: #4c6fff;
+  --safe: #36c28d;
+  --threat: #e5483d;
+  --caution: #e8a33b;
+}
+
+:root {
+  --font-heading: var(--font-fraunces);
+  --font-space: var(--font-space);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--obsidian);
+  color: var(--paper);
+  font-family: var(--font-inter);
+  body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(
+      ellipse 60% 40% at 50% -10%,
+      rgba(76,111,255,0.18),
+      transparent
+    ),
+    radial-gradient(
+      ellipse 50% 30% at 90% 10%,
+      rgba(76,111,255,0.08),
+      transparent
+    );
+  pointer-events: none;
+  z-index: -1;
+}
+}
