@@ -67,20 +67,40 @@ export default function Analyzer() {
           </h2>
 
           <div className="space-y-2">
-            <p>
-              <strong>Scam Probability:</strong>{" "}
-              {result.scamProbability}%
-            </p>
+            <div className="mb-4">
+  <p className="text-gray-400 text-sm">
+    Scam Probability
+  </p>
+
+  <p className="text-red-400 text-4xl font-bold">
+    {Math.round(result.scamProbability)}%
+  </p>
+</div>
+
+            <div className="mb-4">
+  <p className="text-gray-400 text-sm">
+    Trust Score
+  </p>
+
+  <p className="text-green-400 text-4xl font-bold">
+    {Math.round(result.trustScore)}%
+  </p>
+</div>
 
             <p>
-              <strong>Trust Score:</strong>{" "}
-              {result.trustScore}%
-            </p>
-
-            <p>
-              <strong>Risk Level:</strong>{" "}
-              {result.riskLevel}
-            </p>
+  <strong>Risk Level:</strong>{" "}
+  <span
+    className={`px-3 py-1 rounded-full text-sm font-semibold ${
+      result.riskLevel === "High"
+        ? "bg-red-500/20 text-red-400"
+        : result.riskLevel === "Medium"
+        ? "bg-yellow-500/20 text-yellow-400"
+        : "bg-green-500/20 text-green-400"
+    }`}
+  >
+    {result.riskLevel}
+  </span>
+</p>
 
             <p>
               <strong>Scam Type:</strong>{" "}
