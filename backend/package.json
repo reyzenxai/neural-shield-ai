@@ -9,7 +9,7 @@
     "start": "node dist/server.js",
     "type-check": "tsc --noEmit",
     "lint": "eslint src",
-    "test": "node --import tsx --test tests/ai.test.ts tests/schemas.test.ts tests/api.test.ts"
+    "test": "node --import tsx --test tests/ai.test.ts tests/schemas.test.ts tests/api.test.ts tests/normalize.test.ts tests/rules.test.ts tests/risk.test.ts tests/explain.test.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.2",

@@ -14,6 +14,7 @@ const {
   SUPABASE_SERVICE_ROLE_KEY = "",
   SUPABASE_ANON_KEY = "",
   LOG_LEVEL = "info",
+  ENGINE_V2 = "false",
 } = process.env;
 
 /** Ordered model fallback chain for OpenRouter (first that succeeds wins). */
@@ -49,6 +50,10 @@ export const config = {
     serviceRoleKey: SUPABASE_SERVICE_ROLE_KEY,
     anonKey: SUPABASE_ANON_KEY,
   },
+
+  // Trust Engine v2: when false, scans use the legacy LLM-as-scorer path unchanged.
+  // When true, the deterministic engine decides the score and the AI only explains.
+  engineV2: ENGINE_V2 === "true",
 } as const;
 
 export const isAiConfigured = Boolean(config.openRouter.apiKey);
