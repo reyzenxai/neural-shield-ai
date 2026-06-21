@@ -21,6 +21,15 @@ export class ScanError extends Error {
 
 function toScanError(err: unknown): ScanError {
   if (err instanceof AxiosError) {
+    // No response object → the request never reached the API (offline, DNS, the
+    // API is down, or a CORS rejection). "Network Error" alone is confusing.
+    if (!err.response) {
+      return new ScanError(
+        "Couldn't reach the analysis server. Check your connection and try again — if it persists, the API may be down or blocking this origin (CORS).",
+        undefined,
+        err.code,
+      );
+    }
     const data = err.response?.data as ApiEnvelope<unknown> | undefined;
     const detailCode =
       data && typeof data.details === "object" && data.details !== null

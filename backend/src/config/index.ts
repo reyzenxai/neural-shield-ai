@@ -28,8 +28,12 @@ export const config = {
   isProd: NODE_ENV === "production",
   port: Number(PORT),
   appUrl: APP_URL,
-  // Allow both the configured app URL and an explicit FRONTEND_URL for CORS.
-  corsOrigins: [APP_URL, FRONTEND_URL].filter(Boolean) as string[],
+  // CORS allow-list: the app URL plus FRONTEND_URL (which may be a comma-separated
+  // list of origins). Normalized — trailing slashes stripped — so a pasted
+  // "https://app.vercel.app/" still matches the browser Origin "https://app.vercel.app".
+  corsOrigins: [APP_URL, ...(FRONTEND_URL ? FRONTEND_URL.split(",") : [])]
+    .map((o) => o.trim().replace(/\/+$/, ""))
+    .filter(Boolean),
   logLevel: LOG_LEVEL,
 
   openRouter: {

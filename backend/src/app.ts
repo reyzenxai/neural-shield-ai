@@ -29,7 +29,15 @@ export function createApp() {
 
   app.use(
     cors({
-      origin: config.corsOrigins.length ? config.corsOrigins : true,
+      origin(origin, callback) {
+        // Non-browser clients (curl, health checks) send no Origin — allow them.
+        if (!origin) return callback(null, true);
+        // No allow-list configured → reflect any origin (dev convenience).
+        if (!config.corsOrigins.length) return callback(null, true);
+        // Compare normalized (trailing slash stripped) so config typos don't 403.
+        const normalized = origin.replace(/\/+$/, "");
+        callback(null, config.corsOrigins.includes(normalized));
+      },
       credentials: true,
     }),
   );

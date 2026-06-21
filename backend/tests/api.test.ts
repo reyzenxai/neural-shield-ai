@@ -4,6 +4,7 @@ import type { Server } from "node:http";
 import { after, before, describe, it } from "node:test";
 
 import { createApp } from "../src/app";
+import { config } from "../src/config";
 
 let server: Server;
 let base: string;
@@ -46,5 +47,21 @@ describe("unmatched routes", () => {
     assert.equal(res.status, 404);
     const body = (await res.json()) as { success: boolean };
     assert.equal(body.success, false);
+  });
+});
+
+describe("CORS allow-list", () => {
+  it("allows a configured origin and tolerates a trailing slash", async () => {
+    const allowed = config.corsOrigins[0]; // defaults to http://localhost:3000
+    const res = await fetch(`${base}/api/health`, { headers: { Origin: `${allowed}/` } });
+    // cors reflects the (raw) request origin when the normalized form is allowed.
+    assert.equal(res.headers.get("access-control-allow-origin"), `${allowed}/`);
+  });
+
+  it("does not allow an unknown origin (the cause of the prod 'Network Error')", async () => {
+    const res = await fetch(`${base}/api/health`, {
+      headers: { Origin: "https://not-allowed.example.test" },
+    });
+    assert.equal(res.headers.get("access-control-allow-origin"), null);
   });
 });
