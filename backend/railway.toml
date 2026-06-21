@@ -1,0 +1,11 @@
+# Railway deploy config for the Neural Shield backend.
+# `railway up` from backend/ builds the Dockerfile and deploys.
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+healthcheckPath = "/api/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5

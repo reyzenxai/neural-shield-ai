@@ -1,0 +1,6 @@
+Dockerfile
+.dockerignore
+railway.toml
+logs
+dist
+*.log

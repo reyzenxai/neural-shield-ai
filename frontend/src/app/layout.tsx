@@ -1,29 +1,37 @@
 import type { Metadata } from "next";
-import {
-  Inter,
-  Space_Grotesk,
-  Fraunces,
-} from "next/font/google";
+import { Inter, Inter_Tight, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { AppProviders } from "@/components/providers/AppProviders";
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
+  display: "swap",
 });
 
-const spaceGrotesk = Space_Grotesk({
+const interTight = Inter_Tight({
   subsets: ["latin"],
-  variable: "--font-space",
+  variable: "--font-inter-tight",
+  display: "swap",
 });
 
-const fraunces = Fraunces({
+const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
-  variable: "--font-fraunces",
+  variable: "--font-jetbrains",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Neural Shield AI",
-  description: "AI-powered scam detection platform",
+  title: "Neural Shield AI — Stop Scams Before They Stop You",
+  description:
+    "AI-powered fraud detection for messages, URLs, emails, QR codes, and payments. Built for India.",
+  metadataBase: new URL("https://neuralshield.ai"),
+  openGraph: {
+    title: "Neural Shield AI — Stop Scams Before They Stop You",
+    description:
+      "AI-powered fraud detection for messages, URLs, emails, QR codes, and payments. Built for India.",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
@@ -34,13 +42,11 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`
-        ${inter.variable}
-        ${spaceGrotesk.variable}
-        ${fraunces.variable}
-      `}
+      className={`dark ${inter.variable} ${interTight.variable} ${jetbrainsMono.variable}`}
     >
-      <body>{children}</body>
+      <body className="min-h-screen antialiased">
+        <AppProviders>{children}</AppProviders>
+      </body>
     </html>
   );
 }

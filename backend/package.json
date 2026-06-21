@@ -1,21 +1,40 @@
 {
-  "name": "backend",
+  "name": "neural-shield-backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "Neural Shield AI — scam detection API",
+  "main": "dist/server.js",
   "scripts": {
-    "dev": "nodemon server.js"
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "node --import tsx --test tests/ai.test.ts tests/schemas.test.ts tests/api.test.ts"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
-    "axios": "^1.18.0",
-    "cors": "^2.8.6",
-    "dotenv": "^17.4.2",
-    "express": "^5.2.1"
+    "@supabase/supabase-js": "^2.108.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "jimp": "^0.22.12",
+    "jsqr": "^1.4.0",
+    "multer": "^1.4.5-lts.1",
+    "tesseract.js": "^5.1.1",
+    "winston": "^3.17.0",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "@eslint/js": "^9.17.0",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/multer": "^1.4.13",
+    "@types/node": "^20.17.10",
+    "eslint": "^9.17.0",
+    "globals": "^15.14.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.1"
   }
 }
