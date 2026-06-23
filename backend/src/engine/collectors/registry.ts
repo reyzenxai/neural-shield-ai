@@ -13,20 +13,30 @@ import { gsbCollector } from "../intel/gsb";
 import { openphishCollector } from "../intel/openphish";
 import { phishtankCollector } from "../intel/phishtank";
 import { urlhausCollector } from "../intel/urlhaus";
+import { virusTotalCollector } from "../intel/virustotal";
+import { spamhausCollector } from "../intel/spamhaus";
+import { abuseIpDbCollector } from "../intel/abuseipdb";
+import { dnsCheckCollector } from "../intel/dnscheck";
 import { logger } from "../../utils/logger";
 import { rdapCollector } from "./rdap";
 import { tlsCollector } from "./tls";
+import { spfCollector } from "./spf";
 import type { Collector, CollectionOutput } from "./types";
 import type { Entity, Signal } from "../types";
 
-/** All network collectors. (DNS = utilities; redirect = pre-step — not listed here.) */
+/** All network collectors — ordered: always-available first, key-gated last. */
 export const COLLECTORS: Collector[] = [
   rdapCollector,
   tlsCollector,
+  dnsCheckCollector,
+  spfCollector,
   gsbCollector,
   urlhausCollector,
   phishtankCollector,
   openphishCollector,
+  spamhausCollector,
+  abuseIpDbCollector,
+  virusTotalCollector,
 ];
 
 export interface RunOptions {
@@ -50,9 +60,6 @@ export async function runCollectors(entity: Entity, opts: RunOptions = {}): Prom
     return { signals: [], queried: [], failed: [], skipped };
   }
 
-  // Global collection budget — aborts any in-flight network call. When a parent
-  // signal is supplied (the engine-level budget) we ride on it instead of starting a
-  // competing timer; otherwise we own the timer.
   const controller = new AbortController();
   const onParentAbort = (): void => controller.abort();
   let timer: ReturnType<typeof setTimeout> | undefined;

@@ -123,12 +123,29 @@ export function normalizePhone(raw: string): Entity {
   return { type: "phone", value: e164, raw, parts: { e164 } };
 }
 
-/** Canonicalize a UPI VPA (handle@psp), lowercased, deriving the PSP suffix. */
+/** Canonicalize a UPI VPA or full intent URI (upi://pay?pa=vpa@psp&...). */
 export function normalizeUpi(raw: string): Entity {
-  const v = raw.trim().toLowerCase();
-  const at = v.lastIndexOf("@");
-  const psp = at >= 0 ? v.slice(at + 1) : undefined;
-  return { type: "upi", value: v, raw, parts: { psp } };
+  const trimmed = raw.trim();
+  const lower = trimmed.toLowerCase();
+
+  // Full UPI intent URI — extract the VPA from the pa= parameter.
+  if (lower.startsWith("upi://")) {
+    try {
+      const url = new URL(lower);
+      const pa = url.searchParams.get("pa");
+      if (pa) {
+        const at = pa.lastIndexOf("@");
+        const psp = at >= 0 ? pa.slice(at + 1) : undefined;
+        return { type: "upi", value: pa, raw: trimmed, parts: { psp } };
+      }
+    } catch {
+      // fall through to plain-VPA parsing
+    }
+  }
+
+  const at = lower.lastIndexOf("@");
+  const psp = at >= 0 ? lower.slice(at + 1) : undefined;
+  return { type: "upi", value: lower, raw: trimmed, parts: { psp } };
 }
 
 /** Detect the most likely entity type from a raw string. */
@@ -192,29 +209,54 @@ export function entityFromScan(scanType: ScanType, content: string): Entity {
   return normalizeAs(hintFor(scanType, content), content);
 }
 
-/** Sub-entities (links / UPI IDs / emails) found inside free text. */
+/**
+ * Parse a UPI payment intent URI.
+ * Handles both full URIs (upi://pay?pa=...) and bare query strings (pa=...).
+ * Returns null when the input is not a UPI intent.
+ */
+export function parseUpiIntent(raw: string): { pa?: string; pn?: string; am?: string; tn?: string } | null {
+  if (!raw) return null;
+  try {
+    const urlStr = raw.startsWith("upi://") ? raw : (raw.startsWith("pa=") ? `upi://pay?${raw}` : null);
+    if (!urlStr) return null;
+    const url = new URL(urlStr);
+    const pa = url.searchParams.get("pa") ?? undefined;
+    const pn = url.searchParams.get("pn") ?? undefined;
+    const am = url.searchParams.get("am") ?? undefined;
+    const tn = url.searchParams.get("tn") ?? undefined;
+    if (!pa && !pn) return null;
+    return { pa, pn, am, tn };
+  } catch {
+    return null;
+  }
+}
+
+/** Sub-entities (links / UPI IDs / emails / phones) found inside free text. */
 export interface ExtractedEntities {
   urls: string[];
   upis: string[];
   emails: string[];
+  phones: string[];
 }
 
 // Negative lookbehind keeps us from matching the domain part of an email/UPI handle
 // (e.g. the "gmail.com" in "me@gmail.com") as a standalone URL.
 const URL_EXTRACT_RE = /(?<![\w@.])((?:https?:\/\/|www\.)[^\s<>"')]+|[a-z0-9-]+(?:\.[a-z0-9-]+)+(?:\/[^\s<>"')]*)?)/gi;
 const TOKEN_AT_RE = /\b[a-z0-9._-]{2,256}@[a-z0-9.-]{2,64}\b/gi;
+// India-first phone extraction: matches +91/0 prefix variants and bare 10-digit numbers starting with 6-9.
+// Negative lookahead excludes @ so UPI VPAs (9876543210@paytm) are not double-counted as phones.
+const PHONE_EXTRACT_RE = /(?<![/@\d])(?:\+91[-\s]?|91[-\s]?|0)?[6-9]\d{9}(?![\d@])/g;
 
-/** Pull URLs, UPI IDs, and emails out of a block of text (deduped, normalized). */
+/** Pull URLs, UPI IDs, emails, and phone numbers out of a block of text (deduped, normalized). */
 export function extractEntities(text: string): ExtractedEntities {
   const urls = new Set<string>();
   const upis = new Set<string>();
   const emails = new Set<string>();
+  const phones = new Set<string>();
 
   for (const m of text.matchAll(URL_EXTRACT_RE)) {
     const candidate = m[1];
-    // Skip things that are actually email/UPI handles (contain '@').
     if (candidate.includes("@")) continue;
-    // Require a dotted host to avoid matching plain words.
     if (/[a-z0-9-]+\.[a-z]{2,}/i.test(candidate)) urls.add(candidate.replace(/[.,);]+$/, ""));
   }
 
@@ -225,5 +267,11 @@ export function extractEntities(text: string): ExtractedEntities {
     else if (UPI_RE.test(token)) upis.add(token);
   }
 
-  return { urls: [...urls], upis: [...upis], emails: [...emails] };
+  for (const m of text.matchAll(PHONE_EXTRACT_RE)) {
+    const raw = m[0].replace(/[-\s]/g, "");
+    // Skip if the matched digits are part of a URL or look like a pin/amount
+    if (raw.length >= 10 && raw.length <= 13) phones.add(raw);
+  }
+
+  return { urls: [...urls], upis: [...upis], emails: [...emails], phones: [...phones] };
 }

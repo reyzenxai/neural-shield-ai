@@ -8,7 +8,7 @@
 
 import type { OverrideKind, Signal, SignalCategory, SourceId, SourceTier } from "../types";
 
-export const ENGINE_VERSION = "trust-engine@2.0.0";
+export const ENGINE_VERSION = "trust-engine@2.1.0";
 
 /** Per-category caps for positive (risk-raising) contributions (docs/scoring-matrix.md §1). */
 export const CATEGORY_CAPS: Record<SignalCategory, number> = {
@@ -45,8 +45,7 @@ export interface WeightDef {
 }
 
 /**
- * The matrix. Keys are stable signal ids. Threat-intel (`ti.*`) entries are defined
- * now for completeness; the collectors that emit them land in Week 2.
+ * The matrix. Keys are stable signal ids. Bump ENGINE_VERSION on any change.
  */
 export const WEIGHTS: Record<string, WeightDef> = {
   // ── content (docs/scoring-matrix.md §3.4) — cap 35 ──
@@ -73,6 +72,7 @@ export const WEIGHTS: Record<string, WeightDef> = {
   "infra.redirect_chain_long": { category: "infra", weight: 18, tier: 3, label: "Link redirects through several hops to hide its destination" },
   "infra.tls_self_signed": { category: "infra", weight: 18, tier: 3, label: "Site uses a self-signed / invalid TLS certificate" },
   "infra.tls_cn_mismatch": { category: "infra", weight: 16, tier: 3, label: "TLS certificate does not match the site's domain" },
+  "infra.via_qr_code": { category: "infra", weight: 5, tier: 3, label: "Content arrived via QR code — destination was hidden before scanning" },
 
   // ── identity / impersonation (docs/scoring-matrix.md §3.5) — cap 30 ──
   "identity.brand_impersonation": { category: "identity", weight: 14, tier: 3, label: "Impersonates a known bank / authority" },
@@ -82,7 +82,13 @@ export const WEIGHTS: Record<string, WeightDef> = {
   // ── payment instrument (docs/scoring-matrix.md §3.6) — cap 35 ──
   "pay.upi_unknown_psp": { category: "pay", weight: 18, tier: 3, label: "UPI handle uses an unknown payment provider" },
   "pay.upi_brand_impersonation": { category: "pay", weight: 22, tier: 3, label: "UPI ID impersonates a brand (e.g. 'sbi.refund@…')" },
-  "pay.collect_request_unsolicited": { category: "pay", weight: 14, tier: 3, label: "Unsolicited UPI collect / payment request" },
+  "pay.collect_request_unsolicited": { category: "pay", weight: 14, tier: 3, label: "Unsolicited UPI collect / money request — never approve unexpected payment requests" },
+  "pay.upi_intent_name_mismatch": { category: "pay", weight: 16, tier: 3, label: "UPI payee name claims a brand but the VPA doesn't match that brand's PSP" },
+
+  // ── phone ──
+  "phone.intl_claiming_indian_bank": { category: "identity", weight: 20, tier: 2, label: "Non-Indian phone number paired with an Indian bank brand claim" },
+  "phone.premium_rate_prefix": { category: "content", weight: 16, tier: 2, label: "Premium-rate or suspicious phone number prefix" },
+  "phone.suspicious_sequence": { category: "content", weight: 8, tier: 3, label: "Phone number with suspicious repeated or sequential digits" },
 
   // ── threat-intel / blocklist (docs/scoring-matrix.md §3.1) — Week 2 collectors ──
   "ti.gsb.malware": { category: "blocklist", weight: 100, tier: 1, label: "On Google Safe Browsing malware list", override: "malicious" },
@@ -102,6 +108,11 @@ export const WEIGHTS: Record<string, WeightDef> = {
   "domain.age_lt_30d": { category: "domain_age", weight: 25, tier: 1, label: "Domain registered in the last 30 days" },
   "domain.age_lt_90d": { category: "domain_age", weight: 15, tier: 1, label: "Domain registered in the last 90 days" },
   "domain.age_lt_1y": { category: "domain_age", weight: 6, tier: 1, label: "Domain less than a year old" },
+
+  // ── DNS signals ──
+  "domain.low_ttl": { category: "domain_age", weight: 8, tier: 2, label: "Very short DNS TTL — domain IP may be rotated frequently" },
+  "domain.sinkholed": { category: "blocklist", weight: 30, tier: 1, label: "Domain resolves to a known sinkhole or null-route IP" },
+  "domain.no_mx_yet_emails": { category: "identity", weight: 8, tier: 2, label: "Domain has no MX record but appears in email context" },
 
   // ── community / reputation (docs/scoring-matrix.md §3.7) — Week 3 ──
   "reputation.community_abuse": { category: "reputation", weight: 50, tier: 2, label: "Reported as a scam by the community" },
