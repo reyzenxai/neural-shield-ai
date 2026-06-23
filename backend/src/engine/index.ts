@@ -14,16 +14,17 @@ import { expandUrl } from "./collectors/redirect";
 import { runCollectors } from "./collectors/registry";
 import { collectStructural } from "./collectors/structural";
 import { ENGINE_VERSION } from "./config/weights";
-import { entityFromScan, extractEntities, normalizeUpi, normalizeUrl } from "./normalize";
+import { entityFromScan, extractEntities, normalizePhone, normalizeDomain, normalizeUpi, normalizeUrl } from "./normalize";
 import { reputationSignals } from "./reputation";
 import { effectiveWeight, computeRisk } from "./risk";
 import { templatedExplanation } from "../services/ai.service";
-import { runRules, runUpiRules } from "./rules";
+import { runRules, runUpiRules, runPhoneRules } from "./rules";
 import { logger } from "../utils/logger";
 import type { ScanFlag, ScanType } from "../types";
 import type { DecisionTrace, Entity, ScanResultV2, Signal, SourceId } from "./types";
 
 const MAX_SUBENTITY_URLS = 3;
+const MAX_SUBENTITY_PHONES = 3;
 
 /** Map a signal's base weight to a flag severity for the legacy frontend. */
 function severityFor(weight: number): ScanFlag["severity"] {
@@ -51,12 +52,14 @@ export interface RunEngineOpts {
   /** Skip the OpenRouter explanation call and use templatedExplanation instead.
    *  Use for batch/extension calls where AI latency is unacceptable. */
   skipExplain?: boolean;
+  /** Extra signals to inject before risk computation (e.g. infra.via_qr_code). */
+  extraSignals?: Signal[];
 }
 
 /**
  * Run the deterministic engine for a scan: local rules + structural heuristics, plus
- * the network threat-intel collectors (RDAP age, GSB/URLHaus/PhishTank/OpenPhish),
- * all timeboxed by a single engine-level budget.
+ * the network threat-intel collectors (RDAP age, GSB/URLHaus/PhishTank/OpenPhish,
+ * Spamhaus, AbuseIPDB, VirusTotal, DNS), all timeboxed by a single engine-level budget.
  */
 export async function runEngine(scanType: ScanType, content: string, opts: RunEngineOpts = {}): Promise<ScanResultV2> {
   const start = Date.now();
@@ -66,7 +69,10 @@ export async function runEngine(scanType: ScanType, content: string, opts: RunEn
   const failed = new Set<SourceId>();
   const signals: Signal[] = [];
 
-  // ── Rule Engine (content / identity / payment) — always-on, local ──
+  // Inject caller-supplied context signals (e.g. infra.via_qr_code) before everything.
+  if (opts.extraSignals?.length) signals.push(...opts.extraSignals);
+
+  // ── Rule Engine (content / identity / payment / phone) — always-on, local ──
   queried.add("rule_engine");
   try {
     signals.push(...runRules(original, content));
@@ -78,13 +84,34 @@ export async function runEngine(scanType: ScanType, content: string, opts: RunEn
 
   // ── Build the URL/domain targets to deep-analyze (primary + embedded links) ──
   const targets: { entity: Entity; sub: boolean }[] = [];
+
   if (original.type === "url" || original.type === "domain") {
     targets.push({ entity: original, sub: false });
   }
+
   if (original.type === "text" || original.type === "email") {
     const extracted = extractEntities(content);
-    for (const u of extracted.urls.slice(0, MAX_SUBENTITY_URLS)) targets.push({ entity: normalizeUrl(u), sub: true });
-    for (const v of extracted.upis) signals.push(...runUpiRules(normalizeUpi(v)));
+
+    // Embedded URLs → full URL pipeline
+    for (const u of extracted.urls.slice(0, MAX_SUBENTITY_URLS)) {
+      targets.push({ entity: normalizeUrl(u), sub: true });
+    }
+
+    // Embedded UPI IDs → UPI rules
+    for (const v of extracted.upis) {
+      signals.push(...mark(runUpiRules(normalizeUpi(v), content), true));
+    }
+
+    // Embedded phone numbers → phone rules
+    for (const p of extracted.phones.slice(0, MAX_SUBENTITY_PHONES)) {
+      signals.push(...mark(runPhoneRules(normalizePhone(p), content), true));
+    }
+
+    // Email: also scan the sender @domain through the full TI pipeline
+    if (original.type === "email" && original.parts.domain) {
+      const senderDomainEntity = normalizeDomain(original.parts.domain);
+      targets.push({ entity: senderDomainEntity, sub: true });
+    }
   }
 
   // ── Network collection under a single engine-level budget ──
@@ -161,7 +188,7 @@ export async function runEngine(scanType: ScanType, content: string, opts: RunEn
     summary: ai.summary,
     recommendation: ai.recommendation,
     scamType: ai.scamType,
-    detailedAnalysis: ai.summary, // legacy alias
+    detailedAnalysis: ai.summary,
     aiModel: ai.aiModel,
     engineVersion: ENGINE_VERSION,
     processingTimeMs: Date.now() - start,

@@ -28,6 +28,8 @@ const {
   PHISHTANK_APP_KEY = "",
   OPENPHISH_ENABLED = "false",
   OPENPHISH_FEED_URL = "https://openphish.com/feed.txt",
+  VIRUSTOTAL_API_KEY = "",
+  ABUSEIPDB_API_KEY = "",
 } = process.env;
 
 /** Ordered model fallback chain for OpenRouter (first that succeeds wins). */
@@ -81,6 +83,8 @@ export const config = {
     gsb: { apiKey: GSB_API_KEY },
     phishtank: { enabled: PHISHTANK_ENABLED === "true", appKey: PHISHTANK_APP_KEY },
     openphish: { enabled: OPENPHISH_ENABLED === "true", feedUrl: OPENPHISH_FEED_URL },
+    virustotal: { apiKey: VIRUSTOTAL_API_KEY },
+    abuseipdb: { apiKey: ABUSEIPDB_API_KEY },
   },
 } as const;
 
