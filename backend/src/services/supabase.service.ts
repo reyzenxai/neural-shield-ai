@@ -6,7 +6,7 @@ import type { AuthUser, ScanResult, ScanType } from "../types";
 
 let anonClient: SupabaseClient | null = null;
 
-/** Shared anon client used only to validate JWTs. */
+/** Shared anon client — used internally for JWT validation and public RPC calls. */
 function getAnonClient(): SupabaseClient | null {
   if (!isSupabaseConfigured) return null;
   if (!anonClient) {
@@ -15,6 +15,11 @@ function getAnonClient(): SupabaseClient | null {
     });
   }
   return anonClient;
+}
+
+/** Public anon client for engine/reputation queries (no user context needed). */
+export function getPublicClient(): SupabaseClient | null {
+  return getAnonClient();
 }
 
 /**

@@ -6,6 +6,8 @@ import { config } from "./config";
 import { globalLimiter } from "./middleware/rateLimit.middleware";
 import { errorHandler, notFound } from "./middleware/error.middleware";
 import healthRoutes from "./routes/health.routes";
+import reportRoutes from "./routes/report.routes";
+import reputationRoutes from "./routes/reputation.routes";
 import scanRoutes from "./routes/scan.routes";
 
 export function createApp() {
@@ -50,6 +52,8 @@ export function createApp() {
 
   app.use("/api/health", healthRoutes);
   app.use("/api/scan", scanRoutes);
+  app.use("/api/report", reportRoutes);
+  app.use("/api/reputation", reputationRoutes);
 
   app.use(notFound);
   app.use(errorHandler);
