@@ -15,6 +15,7 @@ import { runCollectors } from "./collectors/registry";
 import { collectStructural } from "./collectors/structural";
 import { ENGINE_VERSION } from "./config/weights";
 import { entityFromScan, extractEntities, normalizeUpi, normalizeUrl } from "./normalize";
+import { reputationSignals } from "./reputation";
 import { effectiveWeight, computeRisk } from "./risk";
 import { runRules, runUpiRules } from "./rules";
 import { logger } from "../utils/logger";
@@ -103,6 +104,16 @@ export async function runEngine(scanType: ScanType, content: string): Promise<Sc
     }
   } finally {
     clearTimeout(budgetTimer);
+  }
+
+  // ── Reputation Engine — community reports + cached entity intel ──
+  queried.add("reputation_db");
+  try {
+    const repSignals = await reputationSignals(original);
+    signals.push(...repSignals);
+  } catch (err) {
+    failed.add("reputation_db");
+    logger.warn(`reputation_db failed: ${err instanceof Error ? err.message : String(err)}`);
   }
 
   // Coverage = fraction of attempted (configured) sources that returned without error.
