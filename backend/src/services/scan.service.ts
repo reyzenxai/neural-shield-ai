@@ -2,6 +2,15 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { logger } from "../utils/logger";
 import type { AuthUser, SavedScan, ScanResult, ScanType } from "../types";
+import type { Signal } from "../engine/types";
+
+/** A v2 engine result carries the deterministic risk score + the evidence trail. */
+type EngineExtras = { riskScore: number; confidence: number; engineVersion: string; signals: Signal[] };
+
+/** Type guard: was this scan produced by the Trust Engine v2 (has a Signal trail)? */
+function isEngineResult(r: ScanResult): r is ScanResult & EngineExtras {
+  return Array.isArray((r as Partial<EngineExtras>).signals);
+}
 
 const FREE_DAILY_LIMIT = 10;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -68,6 +77,7 @@ export async function saveScan(
   const base: SavedScan = { ...result, scanId: null, scanType, createdAt };
   if (!client) return base;
 
+  const v2 = isEngineResult(result);
   const { data: scan, error } = await client
     .from("scans")
     .insert({
@@ -82,6 +92,10 @@ export async function saveScan(
       scam_type: result.scamType,
       ai_model: result.aiModel,
       processing_time_ms: result.processingTimeMs,
+      // v2 traceability columns (migration 0008) — null on the legacy path.
+      risk_score: v2 ? result.riskScore : null,
+      confidence: v2 ? result.confidence : null,
+      engine_version: v2 ? result.engineVersion : null,
     })
     .select("id, created_at")
     .single();
@@ -101,6 +115,24 @@ export async function saveScan(
       })),
     );
     if (flagError) logger.warn(`Failed to save flags for scan ${scan.id}: ${flagError.message}`);
+  }
+
+  // Persist the full evidence trail so the verdict is reproducible (docs §F-DB-2).
+  if (v2 && result.signals.length > 0) {
+    const { error: sigError } = await client.from("scan_signals").insert(
+      result.signals.map((s) => ({
+        scan_id: scan.id,
+        signal_id: s.id,
+        category: s.category,
+        weight: s.weight,
+        confidence: s.confidence,
+        source_tier: s.sourceTier,
+        source: s.source,
+        override: s.override ?? null,
+        evidence: s.evidence ?? null,
+      })),
+    );
+    if (sigError) logger.warn(`Failed to save signals for scan ${scan.id}: ${sigError.message}`);
   }
 
   return { ...base, scanId: scan.id as string, createdAt: scan.created_at as string };

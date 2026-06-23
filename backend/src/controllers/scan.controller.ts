@@ -1,12 +1,25 @@
 import type { Request, Response } from "express";
 
+import { config } from "../config";
 import { aiService } from "../services/ai.service";
+import { runEngine } from "../engine";
 import { decodeQr, ocrImage } from "../services/extract.service";
 import { audit, checkAndConsumeDailyLimit, DailyLimitError, saveScan } from "../services/scan.service";
 import { getUserClient, recordApiScan } from "../services/supabase.service";
 import { success, failure } from "../utils/response";
 import { logger } from "../utils/logger";
 import type { AuthUser, ScanInput, ScanResult, SavedScan, ScanType } from "../types";
+
+/**
+ * Produce a scan result. v2 (ENGINE_V2=true): the deterministic engine decides the
+ * score and the AI only explains. Legacy: the AI returns the full result (unchanged).
+ */
+function analyzeInput(scanType: ScanType, input: ScanInput): Promise<ScanResult> {
+  if (config.engineV2) {
+    return runEngine(scanType, input.extractedText || input.content);
+  }
+  return aiService.analyze(input);
+}
 
 /** Persist a scan via the API-key RPC (API auth) or the user's RLS client (web auth). */
 async function persistScan(
@@ -42,7 +55,7 @@ async function runScan(
     // Web (JWT) free users are metered; Business API-key calls are not metered here.
     if (!req.apiKeyHash) await checkAndConsumeDailyLimit(getUserClient(req.userToken), user);
 
-    const result = await aiService.analyze(aiInput);
+    const result = await analyzeInput(scanType, aiInput);
     const saved = await persistScan(req, scanType, stored, result);
     success(res, saved);
   } catch (err) {
@@ -93,7 +106,7 @@ export async function scanScreenshot(req: Request, res: Response): Promise<void>
       failure(res, "Couldn't read any text from that image. Try a clearer screenshot.", 422);
       return;
     }
-    const result = await aiService.analyze({ type: "screenshot", content: text, extractedText: text });
+    const result = await analyzeInput("screenshot", { type: "screenshot", content: text, extractedText: text });
     const saved = await persistScan(req, "screenshot", { text }, result);
     success(res, { ...saved, extractedText: text });
   } catch (err) {
@@ -115,7 +128,7 @@ export async function scanQr(req: Request, res: Response): Promise<void> {
       return;
     }
     const isUrl = /^https?:\/\//i.test(decoded);
-    const result = await aiService.analyze({ type: "qr", content: decoded });
+    const result = await analyzeInput("qr", { type: "qr", content: decoded });
     const saved = await persistScan(req, "qr", isUrl ? { url: decoded, text: decoded } : { text: decoded }, result);
     success(res, { ...saved, decodedText: decoded });
   } catch (err) {
