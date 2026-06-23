@@ -70,6 +70,9 @@ export const WEIGHTS: Record<string, WeightDef> = {
   "infra.excessive_subdomains": { category: "infra", weight: 10, tier: 3, label: "Unusually deep subdomain nesting" },
   "infra.at_symbol_in_url": { category: "infra", weight: 16, tier: 3, label: "'@' in the URL can mask the true destination" },
   "infra.no_tls": { category: "infra", weight: 14, tier: 3, label: "Insecure http:// link (no TLS)" },
+  "infra.redirect_chain_long": { category: "infra", weight: 18, tier: 3, label: "Link redirects through several hops to hide its destination" },
+  "infra.tls_self_signed": { category: "infra", weight: 18, tier: 3, label: "Site uses a self-signed / invalid TLS certificate" },
+  "infra.tls_cn_mismatch": { category: "infra", weight: 16, tier: 3, label: "TLS certificate does not match the site's domain" },
 
   // ── identity / impersonation (docs/scoring-matrix.md §3.5) — cap 30 ──
   "identity.brand_impersonation": { category: "identity", weight: 14, tier: 3, label: "Impersonates a known bank / authority" },
