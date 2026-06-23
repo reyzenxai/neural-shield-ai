@@ -17,6 +17,7 @@ import { ENGINE_VERSION } from "./config/weights";
 import { entityFromScan, extractEntities, normalizeUpi, normalizeUrl } from "./normalize";
 import { reputationSignals } from "./reputation";
 import { effectiveWeight, computeRisk } from "./risk";
+import { templatedExplanation } from "../services/ai.service";
 import { runRules, runUpiRules } from "./rules";
 import { logger } from "../utils/logger";
 import type { ScanFlag, ScanType } from "../types";
@@ -46,12 +47,18 @@ function mark(signals: Signal[], sub: boolean): Signal[] {
   return sub ? signals.map((s) => ({ ...s, fromSubEntity: true })) : signals;
 }
 
+export interface RunEngineOpts {
+  /** Skip the OpenRouter explanation call and use templatedExplanation instead.
+   *  Use for batch/extension calls where AI latency is unacceptable. */
+  skipExplain?: boolean;
+}
+
 /**
  * Run the deterministic engine for a scan: local rules + structural heuristics, plus
  * the network threat-intel collectors (RDAP age, GSB/URLHaus/PhishTank/OpenPhish),
  * all timeboxed by a single engine-level budget.
  */
-export async function runEngine(scanType: ScanType, content: string): Promise<ScanResultV2> {
+export async function runEngine(scanType: ScanType, content: string, opts: RunEngineOpts = {}): Promise<ScanResultV2> {
   const start = Date.now();
   const original = entityFromScan(scanType, content);
 
@@ -127,16 +134,19 @@ export async function runEngine(scanType: ScanType, content: string): Promise<Sc
     sourcesFailed: [...failed],
   };
 
-  // ── AI explanation (no numbers; templated fallback on failure) ──
+  // ── AI explanation (no numbers; templated fallback on failure or when skipped) ──
   const explainSignals: ExplainSignal[] = signals
     .filter((s) => effectiveWeight(s) > 0)
     .map((s) => ({ id: s.id, label: s.label, source: s.source }));
-  const ai = await aiService.explain({
+  const explainInput = {
     entityType: original.type,
     verdict: { riskLevel: risk.riskLevel, trustScore: risk.trustScore, confidence: risk.confidence },
     signals: explainSignals,
     rawContext: content,
-  });
+  };
+  const ai = opts.skipExplain
+    ? { ...templatedExplanation(explainInput), aiModel: "templated" }
+    : await aiService.explain(explainInput);
 
   return {
     scamProbability: risk.scamProbability,

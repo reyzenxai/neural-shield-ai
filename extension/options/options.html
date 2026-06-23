@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neural Shield AI — Settings</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 32px 16px;
+    }
+    .container { max-width: 480px; margin: 0 auto; }
+
+    .header { margin-bottom: 32px; }
+    .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+    .logo-icon {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, #3b82f6, #312e81);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 800; color: #fff;
+    }
+    .logo-name { font-size: 20px; font-weight: 700; color: #f1f5f9; }
+    .header-sub { font-size: 12px; color: #64748b; margin-left: 42px; }
+
+    .card {
+      background: #1e293b;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 16px;
+      border: 1px solid #334155;
+    }
+    .card-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #64748b; margin-bottom: 14px; }
+
+    .form-group { margin-bottom: 14px; }
+    label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 5px; }
+    input[type="email"],
+    input[type="password"],
+    input[type="text"],
+    input[type="url"] {
+      width: 100%;
+      padding: 9px 12px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      color: #f1f5f9;
+      font-size: 13px;
+      outline: none;
+      transition: border-color .15s;
+    }
+    input:focus { border-color: #3b82f6; }
+
+    .btn {
+      padding: 9px 20px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: opacity .15s;
+    }
+    .btn:hover { opacity: .85; }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
+    .btn-primary { background: #3b82f6; color: #fff; width: 100%; }
+    .btn-outline { background: transparent; border: 1px solid #334155; color: #94a3b8; width: 100%; }
+
+    .status {
+      font-size: 12px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      margin-top: 10px;
+      display: none;
+    }
+    .status.success { background: #14532d; color: #86efac; display: block; }
+    .status.error { background: #7f1d1d; color: #fca5a5; display: block; }
+    .status.info { background: #1e3a5f; color: #93c5fd; display: block; }
+
+    .user-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 0;
+    }
+    .user-email { font-size: 13px; color: #60a5fa; }
+    .user-since { font-size: 11px; color: #64748b; }
+
+    .divider { height: 1px; background: #334155; margin: 12px 0; }
+
+    .info-row { display: flex; justify-content: space-between; padding: 4px 0; }
+    .info-label { font-size: 12px; color: #64748b; }
+    .info-value { font-size: 12px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">
+        <div class="logo-icon">NS</div>
+        <span class="logo-name">Neural Shield AI</span>
+      </div>
+      <div class="header-sub">Extension Settings</div>
+    </div>
+
+    <!-- Auth card (shown when signed out) -->
+    <div class="card" id="signInCard">
+      <div class="card-title">Sign In</div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="you@example.com" autocomplete="email" />
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+      <button class="btn btn-primary" id="signInBtn">Sign In</button>
+      <div class="status" id="authStatus"></div>
+    </div>
+
+    <!-- Account card (shown when signed in) -->
+    <div class="card" id="accountCard" style="display:none">
+      <div class="card-title">Account</div>
+      <div class="user-row">
+        <span class="user-email" id="userEmail"></span>
+      </div>
+      <div class="divider"></div>
+      <button class="btn btn-outline" id="signOutBtn">Sign Out</button>
+    </div>
+
+    <!-- API URL card -->
+    <div class="card">
+      <div class="card-title">API Server</div>
+      <div class="form-group">
+        <label for="apiUrl">Backend URL</label>
+        <input type="url" id="apiUrl" placeholder="http://localhost:5000" />
+      </div>
+      <button class="btn btn-primary" id="saveApiUrl">Save</button>
+      <div class="status" id="apiStatus"></div>
+    </div>
+
+    <!-- Engine info card -->
+    <div class="card" id="engineCard" style="display:none">
+      <div class="card-title">Engine Info</div>
+      <div class="info-row">
+        <span class="info-label">Version</span>
+        <span class="info-value" id="cfgVersion">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Engine V2</span>
+        <span class="info-value" id="cfgV2">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Max batch</span>
+        <span class="info-value" id="cfgBatch">—</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="options.js" type="module"></script>
+</body>
+</html>

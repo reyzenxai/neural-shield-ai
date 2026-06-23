@@ -5,6 +5,7 @@ import helmet from "helmet";
 import { config } from "./config";
 import { globalLimiter } from "./middleware/rateLimit.middleware";
 import { errorHandler, notFound } from "./middleware/error.middleware";
+import extensionRoutes from "./routes/extension.routes";
 import healthRoutes from "./routes/health.routes";
 import reportRoutes from "./routes/report.routes";
 import reputationRoutes from "./routes/reputation.routes";
@@ -34,6 +35,10 @@ export function createApp() {
       origin(origin, callback) {
         // Non-browser clients (curl, health checks) send no Origin — allow them.
         if (!origin) return callback(null, true);
+        // Browser extensions always allowed (they authenticate via JWT/key anyway).
+        if (origin.startsWith("chrome-extension://") || origin.startsWith("moz-extension://")) {
+          return callback(null, true);
+        }
         // No allow-list configured → reflect any origin (dev convenience).
         if (!config.corsOrigins.length) return callback(null, true);
         // Compare normalized (trailing slash stripped) so config typos don't 403.
@@ -54,6 +59,7 @@ export function createApp() {
   app.use("/api/scan", scanRoutes);
   app.use("/api/report", reportRoutes);
   app.use("/api/reputation", reputationRoutes);
+  app.use("/api/extension", extensionRoutes);
 
   app.use(notFound);
   app.use(errorHandler);
