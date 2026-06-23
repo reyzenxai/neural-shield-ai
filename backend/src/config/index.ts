@@ -15,6 +15,19 @@ const {
   SUPABASE_ANON_KEY = "",
   LOG_LEVEL = "info",
   ENGINE_V2 = "false",
+  // Trust Engine v2 — evidence collection (Week 2)
+  ENGINE_DISABLE_NETWORK = "false",
+  ENGINE_COLLECTION_BUDGET_MS = "4000",
+  RDAP_ENABLED = "true",
+  TLS_ENABLED = "true",
+  REDIRECT_ENABLED = "true",
+  URLHAUS_ENABLED = "true",
+  URLHAUS_AUTH_KEY = "",
+  GSB_API_KEY = "",
+  PHISHTANK_ENABLED = "false",
+  PHISHTANK_APP_KEY = "",
+  OPENPHISH_ENABLED = "false",
+  OPENPHISH_FEED_URL = "https://openphish.com/feed.txt",
 } = process.env;
 
 /** Ordered model fallback chain for OpenRouter (first that succeeds wins). */
@@ -54,6 +67,21 @@ export const config = {
   // Trust Engine v2: when false, scans use the legacy LLM-as-scorer path unchanged.
   // When true, the deterministic engine decides the score and the AI only explains.
   engineV2: ENGINE_V2 === "true",
+
+  // Evidence collection (Week 2). `disableNetwork` is a master kill switch that skips
+  // every network collector (rules + structural still run) — used in tests/air-gapped
+  // envs. No-key sources default on; key/feed sources are off until configured.
+  intel: {
+    disableNetwork: ENGINE_DISABLE_NETWORK === "true",
+    budgetMs: Number(ENGINE_COLLECTION_BUDGET_MS) || 4000,
+    rdapEnabled: RDAP_ENABLED !== "false",
+    tlsEnabled: TLS_ENABLED !== "false",
+    redirectEnabled: REDIRECT_ENABLED !== "false",
+    urlhaus: { enabled: URLHAUS_ENABLED !== "false", authKey: URLHAUS_AUTH_KEY },
+    gsb: { apiKey: GSB_API_KEY },
+    phishtank: { enabled: PHISHTANK_ENABLED === "true", appKey: PHISHTANK_APP_KEY },
+    openphish: { enabled: OPENPHISH_ENABLED === "true", feedUrl: OPENPHISH_FEED_URL },
+  },
 } as const;
 
 export const isAiConfigured = Boolean(config.openRouter.apiKey);

@@ -1,14 +1,17 @@
 /**
  * Module I — the Trust Engine orchestrator (docs/trust-engine-architecture.md §1).
  *
- *   normalize → collect (rules + structural; TI/reputation in later weeks)
- *            → risk engine → AI explanation → assembled verdict.
+ *   normalize → redirect-expand (URLs) → collect (local rules+structural; network TI
+ *            in parallel, timeboxed, cache-first) → risk engine → AI explanation.
  *
- * The engine decides every number; the AI only narrates. Each collector fails open,
- * so a bug or outage in one source never crashes a scan.
+ * The engine decides every number; the AI only narrates. Every collector fails open,
+ * so a bug or outage in one source never crashes a scan — it only lowers confidence.
  */
 
+import { config } from "../config";
 import { aiService, type ExplainSignal } from "../services/ai.service";
+import { expandUrl } from "./collectors/redirect";
+import { runCollectors } from "./collectors/registry";
 import { collectStructural } from "./collectors/structural";
 import { ENGINE_VERSION } from "./config/weights";
 import { entityFromScan, extractEntities, normalizeUpi, normalizeUrl } from "./normalize";
@@ -16,7 +19,9 @@ import { effectiveWeight, computeRisk } from "./risk";
 import { runRules, runUpiRules } from "./rules";
 import { logger } from "../utils/logger";
 import type { ScanFlag, ScanType } from "../types";
-import type { DecisionTrace, ScanResultV2, Signal, SourceId } from "./types";
+import type { DecisionTrace, Entity, ScanResultV2, Signal, SourceId } from "./types";
+
+const MAX_SUBENTITY_URLS = 3;
 
 /** Map a signal's base weight to a flag severity for the legacy frontend. */
 function severityFor(weight: number): ScanFlag["severity"] {
@@ -35,53 +40,80 @@ function signalsToFlags(signals: Signal[]): ScanFlag[] {
   }));
 }
 
+/** Tag sub-entity signals so the explanation can distinguish embedded links. */
+function mark(signals: Signal[], sub: boolean): Signal[] {
+  return sub ? signals.map((s) => ({ ...s, fromSubEntity: true })) : signals;
+}
+
 /**
- * Run the deterministic engine for a scan. Local-only in Week 1 (rules + structural
- * heuristics); network collectors + reputation are added in Weeks 2–3.
+ * Run the deterministic engine for a scan: local rules + structural heuristics, plus
+ * the network threat-intel collectors (RDAP age, GSB/URLHaus/PhishTank/OpenPhish),
+ * all timeboxed by a single engine-level budget.
  */
 export async function runEngine(scanType: ScanType, content: string): Promise<ScanResultV2> {
   const start = Date.now();
-  const entity = entityFromScan(scanType, content);
+  const original = entityFromScan(scanType, content);
 
-  const sourcesQueried: SourceId[] = [];
-  const sourcesFailed: SourceId[] = [];
+  const queried = new Set<SourceId>();
+  const failed = new Set<SourceId>();
   const signals: Signal[] = [];
 
-  // ── Rule Engine (content / identity / payment) ──
-  sourcesQueried.push("rule_engine");
+  // ── Rule Engine (content / identity / payment) — always-on, local ──
+  queried.add("rule_engine");
   try {
-    signals.push(...runRules(entity, content));
+    signals.push(...runRules(original, content));
   } catch (err) {
-    sourcesFailed.push("rule_engine");
+    failed.add("rule_engine");
     logger.warn(`rule_engine failed: ${err instanceof Error ? err.message : String(err)}`);
   }
+  queried.add("structural");
 
-  // ── Structural heuristics (primary URL/domain entity) ──
-  sourcesQueried.push("structural");
-  try {
-    if (entity.type === "url" || entity.type === "domain") {
-      signals.push(...collectStructural(entity));
-    }
-    // Sub-entities embedded in free text / email / QR payloads.
-    if (entity.type === "text" || entity.type === "email") {
-      const extracted = extractEntities(content);
-      for (const u of extracted.urls) signals.push(...collectStructural(normalizeUrl(u), true));
-      for (const v of extracted.upis) signals.push(...runUpiRules(normalizeUpi(v)));
-    }
-  } catch (err) {
-    sourcesFailed.push("structural");
-    logger.warn(`structural collector failed: ${err instanceof Error ? err.message : String(err)}`);
+  // ── Build the URL/domain targets to deep-analyze (primary + embedded links) ──
+  const targets: { entity: Entity; sub: boolean }[] = [];
+  if (original.type === "url" || original.type === "domain") {
+    targets.push({ entity: original, sub: false });
+  }
+  if (original.type === "text" || original.type === "email") {
+    const extracted = extractEntities(content);
+    for (const u of extracted.urls.slice(0, MAX_SUBENTITY_URLS)) targets.push({ entity: normalizeUrl(u), sub: true });
+    for (const v of extracted.upis) signals.push(...runUpiRules(normalizeUpi(v)));
   }
 
-  // Coverage = fraction of queried sources that returned without error (drives confidence).
-  const coverage = sourcesQueried.length ? (sourcesQueried.length - sourcesFailed.length) / sourcesQueried.length : 0;
+  // ── Network collection under a single engine-level budget ──
+  const budget = new AbortController();
+  const budgetTimer = setTimeout(() => budget.abort(), config.intel.budgetMs);
+  try {
+    for (const t of targets) {
+      let eff = t.entity;
+      if (eff.type === "url") {
+        const expanded = await expandUrl(eff, budget.signal);
+        eff = expanded.entity;
+        signals.push(...mark(expanded.signals, t.sub));
+      }
+      try {
+        signals.push(...mark(collectStructural(eff, t.sub), t.sub));
+      } catch (err) {
+        failed.add("structural");
+        logger.warn(`structural failed: ${err instanceof Error ? err.message : String(err)}`);
+      }
+      const out = await runCollectors(eff, { parentSignal: budget.signal });
+      signals.push(...mark(out.signals, t.sub));
+      out.queried.forEach((s) => queried.add(s));
+      out.failed.forEach((s) => failed.add(s));
+    }
+  } finally {
+    clearTimeout(budgetTimer);
+  }
+
+  // Coverage = fraction of attempted (configured) sources that returned without error.
+  const coverage = queried.size ? (queried.size - failed.size) / queried.size : 0;
   const risk = computeRisk(signals, coverage);
 
   const trace: DecisionTrace = {
     override: risk.override,
     firedRuleIds: signals.map((s) => s.id),
-    sourcesQueried,
-    sourcesFailed,
+    sourcesQueried: [...queried],
+    sourcesFailed: [...failed],
   };
 
   // ── AI explanation (no numbers; templated fallback on failure) ──
@@ -89,7 +121,7 @@ export async function runEngine(scanType: ScanType, content: string): Promise<Sc
     .filter((s) => effectiveWeight(s) > 0)
     .map((s) => ({ id: s.id, label: s.label, source: s.source }));
   const ai = await aiService.explain({
-    entityType: entity.type,
+    entityType: original.type,
     verdict: { riskLevel: risk.riskLevel, trustScore: risk.trustScore, confidence: risk.confidence },
     signals: explainSignals,
     rawContext: content,
