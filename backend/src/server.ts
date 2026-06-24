@@ -1,3 +1,4 @@
+import "./instrument"; // Sentry must be imported before anything else
 import { createApp } from "./app";
 import { config, isAiConfigured, isSupabaseConfigured } from "./config";
 import { logger } from "./utils/logger";

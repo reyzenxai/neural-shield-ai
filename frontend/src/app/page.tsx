@@ -19,6 +19,7 @@ import {
   Upload,
 } from "lucide-react";
 
+import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Navbar } from "@/components/landing/Navbar";
@@ -486,12 +487,12 @@ export default function Home() {
             <span>in India</span>
           </div>
           <div className="flex gap-5">
-            <a href="#" className="hover:text-foreground">
+            <Link href="/privacy" className="hover:text-foreground">
               Privacy
-            </a>
-            <a href="#" className="hover:text-foreground">
-              Security
-            </a>
+            </Link>
+            <Link href="/terms" className="hover:text-foreground">
+              Terms
+            </Link>
             <a href="#features" className="hover:text-foreground">
               Features
             </a>
