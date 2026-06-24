@@ -18,8 +18,8 @@ import { checkSpf, checkDmarc } from "../src/engine/collectors/spf";
 // Engine version
 // ─────────────────────────────────────────────────────────────────────────────
 describe("ENGINE_VERSION", () => {
-  it("is bumped to 2.1.1", () => {
-    assert.equal(ENGINE_VERSION, "trust-engine@2.1.1");
+  it("is bumped to 2.1.2", () => {
+    assert.equal(ENGINE_VERSION, "trust-engine@2.1.2");
   });
 });
 

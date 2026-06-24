@@ -8,7 +8,7 @@
 
 import type { OverrideKind, Signal, SignalCategory, SourceId, SourceTier } from "../types";
 
-export const ENGINE_VERSION = "trust-engine@2.1.1";
+export const ENGINE_VERSION = "trust-engine@2.1.2";
 
 /** Per-category caps for positive (risk-raising) contributions (docs/scoring-matrix.md §1). */
 export const CATEGORY_CAPS: Record<SignalCategory, number> = {
@@ -82,6 +82,7 @@ export const WEIGHTS: Record<string, WeightDef> = {
   // ── payment instrument (docs/scoring-matrix.md §3.6) — cap 35 ──
   "pay.upi_unknown_psp": { category: "pay", weight: 18, tier: 3, label: "UPI handle uses an unknown payment provider" },
   "pay.upi_brand_impersonation": { category: "pay", weight: 22, tier: 3, label: "UPI ID impersonates a brand (e.g. 'sbi.refund@…')" },
+  "pay.upi_suspicious_handle": { category: "pay", weight: 20, tier: 2, label: "UPI handle contains a scam-associated keyword (e.g. prize, kyc, refund)" },
   "pay.collect_request_unsolicited": { category: "pay", weight: 14, tier: 3, label: "Unsolicited UPI collect / money request — never approve unexpected payment requests" },
   "pay.upi_intent_name_mismatch": { category: "pay", weight: 16, tier: 3, label: "UPI payee name claims a brand but the VPA doesn't match that brand's PSP" },
 

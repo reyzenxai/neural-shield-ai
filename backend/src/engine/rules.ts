@@ -85,6 +85,9 @@ const BRAND_PSPS: Record<string, string[]> = {
 /** Collect request scam patterns — fire when UPI context includes an incoming request. */
 const COLLECT_REQUEST_RE = /\b(collect request|collect money|approve|accept payment|receive ₹|pay request|money request|pending collect|debit request)\b/i;
 
+/** Scam-keyword patterns that are suspicious in a UPI handle regardless of brand. */
+const HANDLE_SCAM_RE = /\b(prize|winner|lottery|lucky|reward|refund|cashback|kyc|verify|verification|support|helpdesk|helpline|care|bonus|free|gift|claim)\b/i;
+
 /**
  * Run the rule engine over an entity and the original (untrusted) text.
  * Returns typed Signals; never throws on input.
@@ -151,6 +154,11 @@ export function runUpiRules(entity: Entity, contextText?: string): Signal[] {
 
   if (BRAND_RE.test(handle) && /\b(refund|kyc|verify|support|help|care|prize|bonus)\b/i.test(handle)) {
     signals.push(signalFrom("pay.upi_brand_impersonation", "rule_engine", 0.8, { handle }));
+  }
+
+  // ── suspicious keyword in handle regardless of brand ──
+  if (HANDLE_SCAM_RE.test(handle)) {
+    signals.push(signalFrom("pay.upi_suspicious_handle", "rule_engine", 0.75, { handle }));
   }
 
   // ── collect request: unsolicited payment pull ──
