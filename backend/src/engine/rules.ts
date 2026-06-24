@@ -191,6 +191,11 @@ export function runPhoneRules(entity: Entity, contextText?: string): Signal[] {
   const digits = entity.value.replace(/\D/g, "");
   const localDigits = digits.length >= 10 ? digits.slice(-10) : digits;
 
+  // +91 prefix but local digits don't start with 6–9 (TRAI mobile allocation)
+  if (digits.startsWith("91") && digits.length === 12 && !/^91[6-9]/.test(digits)) {
+    signals.push(signalFrom("phone.invalid_indian_mobile_format", "rule_engine", 0.95, { localPrefix: digits[2] }));
+  }
+
   // Premium-rate / suspicious Indian prefixes (140x = JioFi VOIP, 900x = premium)
   if (/^91(900\d|140[0-9]|141[0-9])/.test(digits)) {
     signals.push(signalFrom("phone.premium_rate_prefix", "rule_engine", 0.8, { prefix: digits.slice(2, 6) }));
