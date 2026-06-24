@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "Neural Shield AI",
+    "slug": "neural-shield-ai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "neuralshield",
+    "userInterfaceStyle": "dark",
+    "splash": { "backgroundColor": "#0a0a12" },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "ai.neuralshield.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Used to scan QR codes for fraud detection.",
+        "NSPhotoLibraryUsageDescription": "Used to analyse screenshot images for scam content."
+      }
+    },
+    "android": {
+      "package": "ai.neuralshield.app",
+      "adaptiveIcon": { "backgroundColor": "#0a0a12", "foregroundImage": "./assets/icon.png" },
+      "permissions": ["CAMERA", "READ_EXTERNAL_STORAGE"]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      ["expo-camera", { "cameraPermission": "Allow Neural Shield AI to access your camera to scan QR codes." }],
+      ["expo-image-picker", { "photosPermission": "Allow Neural Shield AI to access your photos to analyse screenshots for scams." }]
+    ],
+    "experiments": { "typedRoutes": true }
+  }
+}
