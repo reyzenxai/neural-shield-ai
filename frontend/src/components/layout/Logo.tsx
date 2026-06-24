@@ -12,8 +12,10 @@ export function Logo({ href = "/", className }: { href?: string; className?: str
       className={cn("flex items-center gap-2.5", className)}
       aria-label="Neural Shield AI — home"
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/logo.png" alt="" width={40} height={40} className="h-10 w-10 shrink-0 object-contain" aria-hidden="true" />
+      <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-xl">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.png" alt="" className="absolute inset-0 h-full w-full scale-[2.2] object-contain" aria-hidden="true" />
+      </div>
       <span className="font-display text-sm font-semibold tracking-tight">Neural Shield</span>
       <span className="ml-0.5 rounded-md bg-primary/15 px-1.5 py-0.5 font-mono text-[10px] text-primary">
         AI
