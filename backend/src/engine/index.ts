@@ -39,7 +39,7 @@ function signalsToFlags(signals: Signal[]): ScanFlag[] {
   return signals.map((s) => ({
     flag: s.label,
     severity: severityFor(s.weight),
-    description: s.evidence ? `${s.label} (${JSON.stringify(s.evidence)})` : s.label,
+    description: s.label,
   }));
 }
 

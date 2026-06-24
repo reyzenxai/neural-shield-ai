@@ -18,8 +18,8 @@ import { checkSpf, checkDmarc } from "../src/engine/collectors/spf";
 // Engine version
 // ─────────────────────────────────────────────────────────────────────────────
 describe("ENGINE_VERSION", () => {
-  it("is bumped to 2.1.0", () => {
-    assert.equal(ENGINE_VERSION, "trust-engine@2.1.0");
+  it("is bumped to 2.1.1", () => {
+    assert.equal(ENGINE_VERSION, "trust-engine@2.1.1");
   });
 });
 
@@ -140,8 +140,8 @@ describe("phone prefix rules", () => {
 
   it("all phone weights are defined correctly", () => {
     assert.equal(WEIGHTS["phone.intl_claiming_indian_bank"].weight, 20);
-    assert.equal(WEIGHTS["phone.premium_rate_prefix"].weight, 16);
-    assert.equal(WEIGHTS["phone.suspicious_sequence"].weight, 8);
+    assert.equal(WEIGHTS["phone.premium_rate_prefix"].weight, 35);
+    assert.equal(WEIGHTS["phone.suspicious_sequence"].weight, 20);
   });
 });
 
