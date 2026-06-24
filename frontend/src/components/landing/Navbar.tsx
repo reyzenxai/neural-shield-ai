@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, Shield, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
@@ -17,10 +17,9 @@ const NAV_LINKS = [
 
 function Logo() {
   return (
-    <a href="#top" className="flex items-center gap-2" aria-label="Neural Shield AI — home">
-      <div className="relative grid h-8 w-8 place-items-center rounded-lg bg-primary/15 ring-1 ring-primary/30">
-        <Shield className="h-4 w-4 text-primary" />
-      </div>
+    <a href="#top" className="flex items-center gap-2.5" aria-label="Neural Shield AI — home">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/logo.svg" alt="" width={32} height={32} className="h-8 w-8 shrink-0" aria-hidden="true" />
       <span className="font-display text-sm font-semibold tracking-tight">Neural Shield</span>
       <span className="ml-0.5 rounded-md bg-primary/15 px-1.5 py-0.5 font-mono text-[10px] text-primary">
         AI
