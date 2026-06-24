@@ -35,13 +35,13 @@ export const metadata: Metadata = {
       "AI-powered fraud detection for messages, URLs, emails, QR codes, and payments. Built for India.",
     type: "website",
     siteName: "Neural Shield AI",
-    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+    images: [{ url: "/api/og", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Neural Shield AI — Stop Scams Before They Stop You",
     description: "AI-powered scam detection for India. Scan messages, URLs, UPI IDs, QR codes instantly.",
-    images: ["/og-image.png"],
+    images: ["/api/og"],
   },
   keywords: ["scam detection", "fraud detection", "UPI fraud", "phishing", "cyber fraud India", "scam checker"],
 };
