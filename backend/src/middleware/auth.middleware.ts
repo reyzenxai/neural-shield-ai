@@ -23,6 +23,7 @@ const DEV_USER: AuthUser = {
   id: "00000000-0000-0000-0000-000000000000",
   email: "dev@local",
   plan: "free",
+  isAdmin: true,
 };
 
 let warnedDevMode = false;
@@ -94,6 +95,17 @@ export function requirePlan(plans: AuthUser["plan"][]) {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.user || !plans.includes(req.user.plan)) {
       failure(res, `This feature requires the ${plans.join(" or ")} plan.`, 403);
+      return;
+    }
+    next();
+  };
+}
+
+/** Restrict a route to admin users only. Returns 403 for non-admins. */
+export function requireAdmin() {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    if (!req.user?.isAdmin) {
+      failure(res, "Admin access required.", 403);
       return;
     }
     next();

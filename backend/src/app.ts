@@ -5,6 +5,7 @@ import helmet from "helmet";
 import { config } from "./config";
 import { globalLimiter } from "./middleware/rateLimit.middleware";
 import { errorHandler, notFound } from "./middleware/error.middleware";
+import adminRoutes from "./routes/admin.routes";
 import extensionRoutes from "./routes/extension.routes";
 import healthRoutes from "./routes/health.routes";
 import reportRoutes from "./routes/report.routes";
@@ -60,6 +61,7 @@ export function createApp() {
   app.use("/api/report", reportRoutes);
   app.use("/api/reputation", reputationRoutes);
   app.use("/api/extension", extensionRoutes);
+  app.use("/api/admin", adminRoutes);
 
   app.use(notFound);
   app.use(errorHandler);

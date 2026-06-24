@@ -48,13 +48,14 @@ export async function verifyToken(token: string): Promise<AuthUser | null> {
   // Read the profile as the user (RLS) to get their plan.
   const userClient = getUserClient(token);
   const { data: profile } = userClient
-    ? await userClient.from("profiles").select("plan").eq("id", data.user.id).maybeSingle()
+    ? await userClient.from("profiles").select("plan, is_admin").eq("id", data.user.id).maybeSingle()
     : { data: null };
 
   return {
     id: data.user.id,
     email: data.user.email ?? "",
     plan: (profile?.plan as AuthUser["plan"]) ?? "free",
+    isAdmin: (profile as { is_admin?: boolean } | null)?.is_admin ?? false,
   };
 }
 

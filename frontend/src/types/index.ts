@@ -25,6 +25,7 @@ export interface Profile {
   email: string;
   name: string | null;
   plan: Plan;
+  is_admin: boolean;
   daily_scan_count: number;
   daily_scan_reset_at: string;
   avatar_url: string | null;

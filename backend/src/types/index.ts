@@ -43,6 +43,7 @@ export interface AuthUser {
   id: string;
   email: string;
   plan: "free" | "pro" | "business";
+  isAdmin?: boolean;
 }
 
 export interface ScanInput {
