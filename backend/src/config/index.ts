@@ -14,7 +14,7 @@ const {
   SUPABASE_SERVICE_ROLE_KEY = "",
   SUPABASE_ANON_KEY = "",
   LOG_LEVEL = "info",
-  ENGINE_V2 = "false",
+  ENGINE_V2 = "true",
   // Trust Engine v2 — evidence collection (Week 2)
   ENGINE_DISABLE_NETWORK = "false",
   ENGINE_COLLECTION_BUDGET_MS = "4000",
