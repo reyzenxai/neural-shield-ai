@@ -117,7 +117,13 @@ export function normalizePhone(raw: string): Entity {
   let digits = raw.replace(/[^\d]/g, "");
   if (!hadPlus) {
     if (digits.length === 10) digits = `91${digits}`; // bare Indian mobile
-    else if (digits.length === 11 && digits.startsWith("0")) digits = `91${digits.slice(1)}`;
+    else if (digits.length === 11 && digits.startsWith("0")) {
+      const local = digits.slice(1);
+      // Only interpret as Indian 0-prefix dialing form when the local part starts with 6–9
+      // (TRAI mobile allocation). Otherwise leave digits unchanged to avoid mis-tagging
+      // non-Indian numbers like UK landlines (01234567890 → 1234567890, starts with 1).
+      if (/^[6-9]/.test(local)) digits = `91${local}`;
+    }
   }
   const e164 = `+${digits}`;
   return { type: "phone", value: e164, raw, parts: { e164 } };
@@ -144,7 +150,8 @@ export function normalizeUpi(raw: string): Entity {
   }
 
   const at = lower.lastIndexOf("@");
-  const psp = at >= 0 ? lower.slice(at + 1) : undefined;
+  // Guard against trailing @ ("handle@") or double-@ ("handle@@psp") producing empty / wrong PSP
+  const psp = (at >= 0 && at < lower.length - 1) ? lower.slice(at + 1) : undefined;
   return { type: "upi", value: lower, raw: trimmed, parts: { psp } };
 }
 

@@ -8,7 +8,7 @@
 
 import type { OverrideKind, Signal, SignalCategory, SourceId, SourceTier } from "../types";
 
-export const ENGINE_VERSION = "trust-engine@2.1.3";
+export const ENGINE_VERSION = "trust-engine@2.1.4";
 
 /** Per-category caps for positive (risk-raising) contributions (docs/scoring-matrix.md §1). */
 export const CATEGORY_CAPS: Record<SignalCategory, number> = {

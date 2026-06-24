@@ -152,12 +152,14 @@ export function runUpiRules(entity: Entity, contextText?: string): Signal[] {
     signals.push(signalFrom("pay.upi_unknown_psp", "rule_engine", 0.8, { psp }));
   }
 
-  if (BRAND_RE.test(handle) && /\b(refund|kyc|verify|support|help|care|prize|bonus)\b/i.test(handle)) {
+  const isBrandImpersonation = BRAND_RE.test(handle) && /\b(refund|kyc|verify|support|help|care|prize|bonus)\b/i.test(handle);
+  if (isBrandImpersonation) {
     signals.push(signalFrom("pay.upi_brand_impersonation", "rule_engine", 0.8, { handle }));
   }
 
-  // ── suspicious keyword in handle regardless of brand ──
-  if (HANDLE_SCAM_RE.test(handle)) {
+  // ── suspicious keyword in handle (only when brand_impersonation hasn't already fired) ──
+  // Prevents double-counting the same scam keyword evidence within the pay category.
+  if (!isBrandImpersonation && HANDLE_SCAM_RE.test(handle)) {
     signals.push(signalFrom("pay.upi_suspicious_handle", "rule_engine", 0.75, { handle }));
   }
 
@@ -193,7 +195,7 @@ export function runPhoneRules(entity: Entity, contextText?: string): Signal[] {
 
   // +91 prefix but local digits don't start with 6–9 (TRAI mobile allocation)
   if (digits.startsWith("91") && digits.length === 12 && !/^91[6-9]/.test(digits)) {
-    signals.push(signalFrom("phone.invalid_indian_mobile_format", "rule_engine", 0.95, { localPrefix: digits[2] }));
+    signals.push(signalFrom("phone.invalid_indian_mobile_format", "rule_engine", 0.95, { localFirstDigit: digits[2] }));
   }
 
   // Premium-rate / suspicious Indian prefixes (140x = JioFi VOIP, 900x = premium)

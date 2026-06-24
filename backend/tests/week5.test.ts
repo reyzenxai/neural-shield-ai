@@ -18,8 +18,8 @@ import { checkSpf, checkDmarc } from "../src/engine/collectors/spf";
 // Engine version
 // ─────────────────────────────────────────────────────────────────────────────
 describe("ENGINE_VERSION", () => {
-  it("is bumped to 2.1.2", () => {
-    assert.equal(ENGINE_VERSION, "trust-engine@2.1.2");
+  it("is bumped to 2.1.4", () => {
+    assert.equal(ENGINE_VERSION, "trust-engine@2.1.4");
   });
 });
 
@@ -367,6 +367,110 @@ describe("BRAND_RE coverage", () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// New signals added in 2.1.3/2.1.4
+// ─────────────────────────────────────────────────────────────────────────────
+describe("phone.invalid_indian_mobile_format", () => {
+  it("fires for a +91 number whose local digits start with 0–5", () => {
+    // 2047287457 → normalizePhone adds 91 prefix → +912047287457
+    // local first digit is '2', which is not 6–9 → rule fires
+    const entity = normalizePhone("2047287457");
+    const sigs = runPhoneRules(entity);
+    assert.ok(sigs.some((s) => s.id === "phone.invalid_indian_mobile_format"),
+      `expected invalid_indian_mobile_format, got: ${sigs.map((s) => s.id).join(", ")}`);
+  });
+
+  it("fires for a +91 number whose local first digit is '5'", () => {
+    const entity = normalizePhone("5001234567");
+    const sigs = runPhoneRules(entity);
+    assert.ok(sigs.some((s) => s.id === "phone.invalid_indian_mobile_format"));
+  });
+
+  it("does NOT fire for a valid Indian mobile starting with 9", () => {
+    const entity = normalizePhone("9876543210");
+    const sigs = runPhoneRules(entity);
+    assert.ok(!sigs.some((s) => s.id === "phone.invalid_indian_mobile_format"));
+  });
+
+  it("does NOT fire for a valid Indian mobile starting with 6", () => {
+    const entity = normalizePhone("6001234567");
+    const sigs = runPhoneRules(entity);
+    assert.ok(!sigs.some((s) => s.id === "phone.invalid_indian_mobile_format"));
+  });
+
+  it("has weight 30 and tier 1 in the matrix", () => {
+    assert.equal(WEIGHTS["phone.invalid_indian_mobile_format"].weight, 30);
+    assert.equal(WEIGHTS["phone.invalid_indian_mobile_format"].tier, 1);
+  });
+});
+
+describe("pay.upi_suspicious_handle", () => {
+  it("fires for a handle containing a scam keyword (prize)", () => {
+    const entity = normalizeUpi("prize.winner123@paytm");
+    const sigs = runUpiRules(entity);
+    assert.ok(sigs.some((s) => s.id === "pay.upi_suspicious_handle"),
+      `expected upi_suspicious_handle, got: ${sigs.map((s) => s.id).join(", ")}`);
+  });
+
+  it("fires for a handle with 'kyc' keyword (word-boundary match)", () => {
+    // "kyc" must appear as a whole word token in the handle — "kyc.update" matches, "kycupdate" does not
+    const entity = normalizeUpi("kyc.update@oksbi");
+    const sigs = runUpiRules(entity);
+    assert.ok(sigs.some((s) => s.id === "pay.upi_suspicious_handle"),
+      `expected upi_suspicious_handle, got: ${sigs.map((s) => s.id).join(", ")}`);
+  });
+
+  it("does NOT fire when brand_impersonation already covers the handle", () => {
+    // sbi.refund@oksbi: has brand ("sbi") + scam word ("refund") → brand_impersonation fires,
+    // upi_suspicious_handle should NOT double-fire for the same evidence
+    const entity = normalizeUpi("sbi.refund@oksbi");
+    const sigs = runUpiRules(entity);
+    assert.ok(sigs.some((s) => s.id === "pay.upi_brand_impersonation"),
+      "expected brand_impersonation to fire");
+    assert.ok(!sigs.some((s) => s.id === "pay.upi_suspicious_handle"),
+      "upi_suspicious_handle should not double-fire when brand_impersonation already fired");
+  });
+
+  it("does NOT fire for a clean handle", () => {
+    const entity = normalizeUpi("johndoe@oksbi");
+    const sigs = runUpiRules(entity);
+    assert.ok(!sigs.some((s) => s.id === "pay.upi_suspicious_handle"));
+  });
+
+  it("has weight 20 and tier 2 in the matrix", () => {
+    assert.equal(WEIGHTS["pay.upi_suspicious_handle"].weight, 20);
+    assert.equal(WEIGHTS["pay.upi_suspicious_handle"].tier, 2);
+  });
+});
+
+describe("normalizeUpi edge cases", () => {
+  it("returns undefined PSP for trailing-@ handle", () => {
+    const entity = normalizeUpi("handle@");
+    assert.equal(entity.parts.psp, undefined);
+  });
+
+  it("extracts correct PSP for a normal VPA", () => {
+    const entity = normalizeUpi("user@paytm");
+    assert.equal(entity.parts.psp, "paytm");
+  });
+});
+
+describe("normalizePhone 0-prefix edge cases", () => {
+  it("treats 0-prefix 10-digit-local as Indian when local starts with 6–9", () => {
+    const entity = normalizePhone("09876543210");
+    // 11 digits, starts with 0, local = 9876543210 (starts with 9) → +919876543210
+    assert.equal(entity.value, "+919876543210");
+  });
+
+  it("does NOT re-tag a 0-prefix number whose local doesn't start with 6–9", () => {
+    // 01234567890 — 11 digits, starts with 0, local = 1234567890 (starts with 1, UK-like)
+    const entity = normalizePhone("01234567890");
+    // Should NOT be normalized to +91... — local starts with 1, not a valid Indian mobile
+    assert.ok(!entity.value.startsWith("+911"), `got: ${entity.value}`);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Regression: old signals still present in matrix
 // ─────────────────────────────────────────────────────────────────────────────
 describe("scoring matrix regression", () => {
@@ -375,6 +479,7 @@ describe("scoring matrix regression", () => {
     "infra.shortener", "infra.host_is_ip", "infra.punycode_homoglyph",
     "identity.brand_impersonation", "identity.free_email_for_company",
     "pay.upi_unknown_psp", "pay.upi_brand_impersonation",
+    "pay.upi_suspicious_handle", "phone.invalid_indian_mobile_format",
     "ti.gsb.malware", "ti.gsb.social_engineering",
     "ti.phishtank.verified", "ti.urlhaus.malware", "ti.openphish.match",
     "domain.age_lt_7d", "domain.age_lt_30d", "domain.age_gt_5y",
