@@ -10,6 +10,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@neural-shield/types": "*",
     "@radix-ui/react-dialog": "^1.1.17",
     "@radix-ui/react-slot": "^1.3.0",
     "@radix-ui/react-tooltip": "^1.2.10",

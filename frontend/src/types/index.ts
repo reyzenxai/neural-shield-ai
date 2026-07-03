@@ -1,17 +1,21 @@
-/** Shared application types. */
+/**
+ * Frontend types. The scan contract lives in @neural-shield/types and is
+ * re-exported here, so existing `@/types` imports keep working. Types that are
+ * specific to the web app (profile rows, API keys, the API envelope, DB row
+ * shapes) stay local.
+ */
 
-export type Plan = "free" | "pro" | "business";
+export type {
+  ScanType,
+  RiskLevel,
+  FlagSeverity,
+  ScanFlag,
+  Plan,
+  ScanResult,
+  SavedScan,
+} from "@neural-shield/types";
 
-export type RiskLevel = "safe" | "low" | "medium" | "high" | "critical";
-
-export type ScanType =
-  | "message"
-  | "url"
-  | "email"
-  | "screenshot"
-  | "qr"
-  | "phone"
-  | "upi";
+import type { FlagSeverity, Plan, RiskLevel, ScanType } from "@neural-shield/types";
 
 export interface NotificationPrefs {
   scam_alerts: boolean;
@@ -49,37 +53,6 @@ export interface SignupData {
   name: string;
   email: string;
   password: string;
-}
-
-export type FlagSeverity = "info" | "warning" | "danger";
-
-export interface ScanFlag {
-  flag: string;
-  severity: FlagSeverity;
-  description: string;
-}
-
-/** Analysis returned by the backend scan API. */
-export interface ScanResult {
-  scamProbability: number; // 0.0–1.0
-  trustScore: number; // 0–100
-  riskLevel: RiskLevel;
-  scamType: string | null;
-  flags: ScanFlag[];
-  recommendation: string;
-  detailedAnalysis: string;
-  aiModel: string;
-  processingTimeMs: number;
-}
-
-export interface SavedScan extends ScanResult {
-  scanId: string | null;
-  scanType: ScanType;
-  createdAt: string;
-  /** OCR text (screenshot scans) */
-  extractedText?: string;
-  /** decoded QR payload (qr scans) */
-  decodedText?: string;
 }
 
 /** Standard API envelope returned by the backend. */
