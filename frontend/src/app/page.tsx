@@ -26,6 +26,7 @@ import { Navbar } from "@/components/landing/Navbar";
 import { NeuralOrb } from "@/components/landing/NeuralOrb";
 import { HeroScanPreview } from "@/components/landing/HeroScanPreview";
 import { RiskDemo } from "@/components/landing/RiskDemo";
+import { PLANS, PLAN_ORDER, planFeatureLines, type PlanId } from "@neural-shield/config";
 
 const fadeUp = {
   initial: { opacity: 0, y: 24 },
@@ -59,41 +60,13 @@ const STEPS = [
   { icon: ShieldCheck, title: "Get Your Result", desc: "A clear trust score, risk level, and what to do next." },
 ];
 
-const PRICING = [
-  {
-    name: "Free",
-    price: "₹0",
-    cadence: "/month",
-    blurb: "For everyday protection.",
-    features: ["10 scans / day", "Message + URL scanner", "Basic risk report"],
-    cta: "Get Started Free",
-    featured: false,
-  },
-  {
-    name: "Pro",
-    price: "₹299",
-    cadence: "/month",
-    blurb: "For power users and families.",
-    features: ["Unlimited scans", "All 7 scanners", "Scan history (90 days)", "PDF export"],
-    cta: "Start Pro Trial",
-    featured: true,
-  },
-  {
-    name: "Business",
-    price: "₹999",
-    cadence: "/month",
-    blurb: "For teams that ship trust.",
-    features: [
-      "Everything in Pro",
-      "Team dashboard (up to 10 users)",
-      "API access (10,000 calls/mo)",
-      "Threat intelligence feed",
-      "Priority support",
-    ],
-    cta: "Contact Sales",
-    featured: false,
-  },
-];
+const PLAN_COPY: Record<PlanId, { blurb: string; cta: string; featured?: boolean }> = {
+  free: { blurb: "For everyday protection.", cta: "Get Started Free" },
+  individual: { blurb: "One person, everyday peace of mind.", cta: "Choose Individual", featured: true },
+  two_person: { blurb: "Cover two people you care about.", cta: "Choose Two-person" },
+  family: { blurb: "Protect the whole family.", cta: "Choose Family" },
+  pro: { blurb: "Everything, unlimited, all 7 scanners.", cta: "Go Pro" },
+};
 
 const TESTIMONIALS = [
   {
@@ -126,23 +99,23 @@ const FAQS: [string, string][] = [
   ],
   [
     "Is my data stored or shared?",
-    "By default your content is analyzed in-memory and never sold or shared. Free scans are not retained; Pro users can opt in to a private 90-day history they control.",
+    "By default your content is analyzed and never sold or shared. Free scans keep a short 7-day history; paid plans keep a private scan history you control (30 days, or 60 days on Pro).",
   ],
   [
-    "Which languages does it support?",
-    "English and Hinglish work today, with major Indian languages rolling out. You can paste a message exactly as you received it.",
+    "How do the Two-person and Family plans work?",
+    "Whoever buys the plan links the other members by the email they signed up with on Neural Shield. Each member gets their own scan quota. You can change a linked email once per billing month from your profile.",
+  ],
+  [
+    "How do I upgrade and pay?",
+    "Pick a plan, pay with UPI, and upload your payment screenshot. We verify it and activate your plan. No card or wallet needed.",
   ],
   [
     "What is a Trust Score?",
     "A 0-100 score: higher means safer. It is the inverse of scam probability and is paired with a clear risk level (Safe, Suspicious, Dangerous, or Critical) plus the exact red flags we found.",
   ],
   [
-    "Can I use it via API?",
-    "Yes. The Business plan includes API access (10,000 calls/month) so you can plug fraud detection into your own app, support desk, or workflow.",
-  ],
-  [
     "Is there a mobile app?",
-    "The web app is fully mobile-optimized today. Native Android and iOS apps are on the roadmap - join Free to be notified first.",
+    "The web app is fully mobile-optimized today, and an Android app is on the way. Join Free to be notified first.",
   ],
 ];
 
@@ -339,47 +312,51 @@ export default function Home() {
         }
         sub="Start free. Upgrade the day one prevented scam is worth more than a year of protection."
       >
-        <div className="grid gap-5 md:grid-cols-3">
-          {PRICING.map((t, i) => (
-            <motion.div
-              key={t.name}
-              {...fadeUp}
-              transition={{ ...fadeUp.transition, delay: i * 0.06 }}
-              className={`relative rounded-3xl p-7 ${
-                t.featured ? "glass-strong ring-1 ring-primary/40 glow-primary" : "glass"
-              }`}
-            >
-              {t.featured && (
-                <span className="absolute -top-3 left-7 rounded-full bg-primary px-3 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-widest text-primary-foreground">
-                  Most Popular
-                </span>
-              )}
-              <div className="font-display text-lg font-semibold">{t.name}</div>
-              <div className="mt-3 flex items-baseline gap-1">
-                <span className="font-display text-4xl font-bold">{t.price}</span>
-                <span className="text-sm text-muted-foreground">{t.cadence}</span>
-              </div>
-              <p className="mt-1 text-sm text-muted-foreground">{t.blurb}</p>
-              <ul className="mt-5 space-y-2.5 text-sm">
-                {t.features.map((f) => (
-                  <li key={f} className="flex gap-2">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Button
-                asChild
-                variant={t.featured ? "primary" : "secondary"}
-                size="md"
-                className="mt-7 w-full"
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          {PLAN_ORDER.map((id, i) => {
+            const plan = PLANS[id];
+            const copy = PLAN_COPY[id];
+            return (
+              <motion.div
+                key={id}
+                {...fadeUp}
+                transition={{ ...fadeUp.transition, delay: i * 0.06 }}
+                className={`relative rounded-3xl p-6 ${
+                  copy.featured ? "glass-strong ring-1 ring-primary/40 glow-primary" : "glass"
+                }`}
               >
-                <a href="#demo">
-                  {t.cta} <ArrowRight className="h-4 w-4" />
-                </a>
-              </Button>
-            </motion.div>
-          ))}
+                {copy.featured && (
+                  <span className="absolute -top-3 left-6 rounded-full bg-primary px-3 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-widest text-primary-foreground">
+                    Most Popular
+                  </span>
+                )}
+                <div className="font-display text-lg font-semibold">{plan.name}</div>
+                <div className="mt-3 flex items-baseline gap-1">
+                  <span className="font-display text-3xl font-bold">₹{plan.priceInr}</span>
+                  <span className="text-sm text-muted-foreground">/month</span>
+                </div>
+                <p className="mt-1 text-sm text-muted-foreground">{copy.blurb}</p>
+                <ul className="mt-5 space-y-2.5 text-sm">
+                  {planFeatureLines(plan).map((f) => (
+                    <li key={f} className="flex gap-2">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  asChild
+                  variant={copy.featured ? "primary" : "secondary"}
+                  size="md"
+                  className="mt-7 w-full"
+                >
+                  <Link href="/signup">
+                    {copy.cta} <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </motion.div>
+            );
+          })}
         </div>
       </Section>
 

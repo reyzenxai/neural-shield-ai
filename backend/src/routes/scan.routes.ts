@@ -33,7 +33,7 @@ router.post("/phone", validateBody(PhoneScanSchema), scanPhone);
 router.post("/upi", validateBody(UpiScanSchema), scanUpi);
 
 // Image scanners are Pro-tier: OCR a screenshot / decode a QR, then analyze.
-router.post("/screenshot", requirePlan(["pro", "business"]), uploadImage, scanScreenshot);
-router.post("/qr", requirePlan(["pro", "business"]), uploadImage, scanQr);
+router.post("/screenshot", requirePlan(["pro"]), uploadImage, scanScreenshot);
+router.post("/qr", requirePlan(["pro"]), uploadImage, scanQr);
 
 export default router;

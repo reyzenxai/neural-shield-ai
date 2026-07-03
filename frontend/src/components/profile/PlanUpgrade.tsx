@@ -9,11 +9,13 @@ import { startCheckout, type PaidPlan } from "@/lib/billing";
 import { cn } from "@/lib/utils";
 
 const PLANS: { id: PaidPlan; name: string; price: string; blurb: string }[] = [
-  { id: "pro", name: "Pro", price: "₹299", blurb: "Unlimited scans · all 7 scanners · 90-day history" },
-  { id: "business", name: "Business", price: "₹999", blurb: "Everything in Pro · team · API access" },
+  { id: "individual", name: "Individual", price: "₹149", blurb: "150 scans/mo · 5 scanners · 30-day history" },
+  { id: "two_person", name: "Two-person", price: "₹219", blurb: "2 users · 110 scans each · 30-day history" },
+  { id: "family", name: "Family", price: "₹299", blurb: "4 users · 75 scans each · 30-day history" },
+  { id: "pro", name: "Pro", price: "₹499", blurb: "Unlimited · all 7 scanners · 60-day history" },
 ];
 
-const ORDER: Record<string, number> = { free: 0, pro: 1, business: 2 };
+const ORDER: Record<string, number> = { free: 0, individual: 1, two_person: 2, family: 3, pro: 4 };
 
 /** Upgrade options (plans above the current one), wired to Razorpay checkout. */
 export function PlanUpgrade() {
@@ -78,7 +80,7 @@ export function PlanUpgrade() {
           </button>
         ))}
       </div>
-      <p className="text-[11px] text-muted-foreground">Secure payments via Razorpay. Cancel anytime.</p>
+      <p className="text-[11px] text-muted-foreground">Upgrade anytime.</p>
     </div>
   );
 }

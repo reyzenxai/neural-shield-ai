@@ -15,9 +15,11 @@ import { timeAgo } from "@/lib/utils";
 const PAGE_SIZE = 20;
 
 const PLAN_VARIANT: Record<string, "default" | "secondary" | "accent"> = {
-  free:     "default",
-  pro:      "secondary",
-  business: "accent",
+  free:       "default",
+  individual: "secondary",
+  two_person: "secondary",
+  family:     "accent",
+  pro:        "accent",
 };
 
 export default function AdminUsersPage() {
@@ -77,8 +79,10 @@ export default function AdminUsersPage() {
         >
           <option value="">All plans</option>
           <option value="free">Free</option>
+          <option value="individual">Individual</option>
+          <option value="two_person">Two-person</option>
+          <option value="family">Family</option>
           <option value="pro">Pro</option>
-          <option value="business">Business</option>
         </select>
       </div>
 

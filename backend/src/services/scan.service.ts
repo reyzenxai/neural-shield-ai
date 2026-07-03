@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { logger } from "../utils/logger";
 import type { AuthUser, SavedScan, ScanResult, ScanType } from "../types";
 import type { Signal } from "../threat-engine/types";
+import { PLAN_RULES } from "../config/plans";
 
 /** A v2 engine result carries the deterministic risk score + the evidence trail. */
 type EngineExtras = { riskScore: number; confidence: number; engineVersion: string; signals: Signal[] };
@@ -12,52 +13,63 @@ function isEngineResult(r: ScanResult): r is ScanResult & EngineExtras {
   return Array.isArray((r as Partial<EngineExtras>).signals);
 }
 
-const FREE_DAILY_LIMIT = 10;
 const DAY_MS = 24 * 60 * 60 * 1000;
+const MONTH_MS = 30 * DAY_MS;
 
 export class DailyLimitError extends Error {
   code = "DAILY_LIMIT_EXCEEDED" as const;
-  constructor(message = "Daily scan limit reached.") {
+  constructor(message = "Scan limit reached.") {
     super(message);
     this.name = "DailyLimitError";
   }
 }
 
 /**
- * Enforce the free-tier daily scan cap. Resets the counter when the 24h window
- * has elapsed. No-op for pro/business, or when there is no DB client (dev mode).
- * @throws DailyLimitError when a free user is over the cap.
+ * Enforce the plan's per-user daily and monthly scan caps, resetting each counter
+ * when its window elapses. No-op for unlimited plans (Pro) or in dev (no client).
+ * Effective plan is the user's own plan for now; inheritance from a shared plan
+ * (Two-person, Family) lands with the multi-user linking phase.
+ * @throws DailyLimitError when a cap is exceeded.
  */
-export async function checkAndConsumeDailyLimit(
+export async function checkAndConsumeLimits(
   client: SupabaseClient | null,
   user: AuthUser,
 ): Promise<void> {
-  if (user.plan !== "free" || !client) return;
+  const rules = PLAN_RULES[user.plan] ?? PLAN_RULES.free;
+  if (rules.dailyScans == null && rules.monthlyScans == null) return; // unlimited (Pro)
+  if (!client) return; // dev mode
 
   const { data: profile, error } = await client
     .from("profiles")
-    .select("daily_scan_count, daily_scan_reset_at")
+    .select("daily_scan_count, daily_scan_reset_at, monthly_scan_count, monthly_scan_reset_at")
     .eq("id", user.id)
     .maybeSingle();
 
   if (error || !profile) {
-    logger.warn(`Could not read daily limit for ${user.id}: ${error?.message ?? "no profile"}`);
+    logger.warn(`Could not read scan limits for ${user.id}: ${error?.message ?? "no profile"}`);
     return;
   }
 
-  const resetAt = new Date(profile.daily_scan_reset_at).getTime();
-  const expired = Date.now() - resetAt >= DAY_MS;
-  const currentCount = expired ? 0 : (profile.daily_scan_count ?? 0);
+  const now = Date.now();
+  const dayExpired = now - new Date(profile.daily_scan_reset_at).getTime() >= DAY_MS;
+  const monthExpired = now - new Date(profile.monthly_scan_reset_at).getTime() >= MONTH_MS;
+  const dayCount = dayExpired ? 0 : (profile.daily_scan_count ?? 0);
+  const monthCount = monthExpired ? 0 : (profile.monthly_scan_count ?? 0);
 
-  if (currentCount >= FREE_DAILY_LIMIT) {
-    throw new DailyLimitError("Daily scan limit reached. Upgrade to Pro for unlimited scans.");
+  if (rules.dailyScans != null && dayCount >= rules.dailyScans) {
+    throw new DailyLimitError(`Daily scan limit reached (${rules.dailyScans}/day). Try again tomorrow or upgrade.`);
+  }
+  if (rules.monthlyScans != null && monthCount >= rules.monthlyScans) {
+    throw new DailyLimitError(`Monthly scan limit reached (${rules.monthlyScans}/month). Upgrade for more.`);
   }
 
   await client
     .from("profiles")
     .update({
-      daily_scan_count: currentCount + 1,
-      daily_scan_reset_at: expired ? new Date().toISOString() : profile.daily_scan_reset_at,
+      daily_scan_count: dayCount + 1,
+      daily_scan_reset_at: dayExpired ? new Date().toISOString() : profile.daily_scan_reset_at,
+      monthly_scan_count: monthCount + 1,
+      monthly_scan_reset_at: monthExpired ? new Date().toISOString() : profile.monthly_scan_reset_at,
     })
     .eq("id", user.id);
 }

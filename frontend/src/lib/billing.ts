@@ -41,7 +41,7 @@ function loadRazorpay(): Promise<boolean> {
   return scriptPromise;
 }
 
-export type PaidPlan = Extract<Plan, "pro" | "business">;
+export type PaidPlan = Extract<Plan, "individual" | "two_person" | "family" | "pro">;
 
 /** Pull the real message out of a supabase-js FunctionsHttpError when possible. */
 async function edgeErrorMessage(error: unknown, fallback: string): Promise<string> {
@@ -96,7 +96,7 @@ export async function startCheckout(
     amount: order.amount,
     currency: order.currency,
     name: "Neural Shield AI",
-    description: `${plan === "pro" ? "Pro" : "Business"} plan`,
+    description: "Neural Shield plan upgrade",
     prefill: { name: opts.name, email: opts.email },
     theme: { color: "#00F5D4" },
     modal: { ondismiss: () => opts.onDismiss?.() },
