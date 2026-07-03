@@ -1,0 +1,8 @@
+{
+  "name": "@neural-shield/types",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Canonical shared types for Neural Shield AI (scans, risk, signals).",
+  "types": "./index.d.ts",
+  "main": "./index.js"
+}

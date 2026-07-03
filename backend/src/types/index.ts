@@ -1,48 +1,26 @@
-/** Canonical scan contract shared (by convention) with the frontend. */
+/**
+ * Backend types. The scan contract now lives in @neural-shield/types and is
+ * re-exported here so existing imports (`../types`) keep working unchanged.
+ * Types that are backend only (the authenticated user, the AI input shape) stay
+ * local.
+ */
 
-export type ScanType =
-  | "message"
-  | "url"
-  | "email"
-  | "screenshot"
-  | "qr"
-  | "phone"
-  | "upi";
+export type {
+  ScanType,
+  RiskLevel,
+  FlagSeverity,
+  ScanFlag,
+  ScanResult,
+  SavedScan,
+  Plan,
+} from "@neural-shield/types";
 
-export type RiskLevel = "safe" | "low" | "medium" | "high" | "critical";
-
-export type FlagSeverity = "info" | "warning" | "danger";
-
-export interface ScanFlag {
-  flag: string;
-  severity: FlagSeverity;
-  description: string;
-}
-
-/** Raw analysis returned by the AI service. */
-export interface ScanResult {
-  scamProbability: number; // 0.0–1.0
-  trustScore: number; // 0–100
-  riskLevel: RiskLevel;
-  scamType: string | null;
-  flags: ScanFlag[];
-  recommendation: string;
-  detailedAnalysis: string;
-  aiModel: string;
-  processingTimeMs: number;
-}
-
-/** Persisted scan + analysis returned to the client. */
-export interface SavedScan extends ScanResult {
-  scanId: string | null;
-  scanType: ScanType;
-  createdAt: string;
-}
+import type { Plan, ScanType } from "@neural-shield/types";
 
 export interface AuthUser {
   id: string;
   email: string;
-  plan: "free" | "pro" | "business";
+  plan: Plan;
   isAdmin?: boolean;
 }
 

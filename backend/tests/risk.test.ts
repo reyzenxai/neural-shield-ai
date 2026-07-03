@@ -1,8 +1,8 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
 
-import { bandFor, computeRisk } from "../src/engine/risk";
-import type { OverrideKind, Signal, SignalCategory, SourceTier } from "../src/engine/types";
+import { bandFor, computeRisk } from "../src/threat-engine/risk";
+import type { OverrideKind, Signal, SignalCategory, SourceTier } from "../src/threat-engine/types";
 
 /** Compact Signal builder for tests. */
 function mk(

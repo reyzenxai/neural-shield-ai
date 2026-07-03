@@ -12,6 +12,7 @@
     "test": "node --import tsx --test tests/ai.test.ts tests/schemas.test.ts tests/api.test.ts tests/normalize.test.ts tests/rules.test.ts tests/risk.test.ts tests/explain.test.ts tests/engine-collectors.test.ts tests/intel.test.ts tests/reputation.test.ts tests/extension.test.ts tests/week5.test.ts"
   },
   "dependencies": {
+    "@neural-shield/types": "*",
     "@sentry/node": "^10.60.0",
     "@supabase/supabase-js": "^2.108.2",
     "cors": "^2.8.5",

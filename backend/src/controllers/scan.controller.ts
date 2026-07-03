@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 
 import { config } from "../config";
 import { aiService } from "../services/ai.service";
-import { runEngine } from "../engine";
+import { runEngine } from "../threat-engine";
 import { decodeQr, ocrImage } from "../services/extract.service";
 import { audit, checkAndConsumeDailyLimit, DailyLimitError, saveScan } from "../services/scan.service";
 import { getUserClient, recordApiScan } from "../services/supabase.service";

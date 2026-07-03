@@ -1,0 +1,16 @@
+{
+  "name": "neural-shield",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Neural Shield AI monorepo (web, backend, shared packages).",
+  "workspaces": [
+    "frontend",
+    "backend",
+    "packages/*"
+  ],
+  "scripts": {
+    "type-check:web": "npm run type-check --workspace=frontend",
+    "type-check:backend": "npm run type-check --workspace=backend",
+    "test:backend": "npm run test --workspace=backend"
+  }
+}

@@ -1,8 +1,8 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
 
-import { entityFromScan, normalizeUpi } from "../src/engine/normalize";
-import { runRules, runUpiRules } from "../src/engine/rules";
+import { entityFromScan, normalizeUpi } from "../src/threat-engine/normalize";
+import { runRules, runUpiRules } from "../src/threat-engine/rules";
 
 const ids = (text: string): string[] => runRules(entityFromScan("message", text), text).map((s) => s.id);
 

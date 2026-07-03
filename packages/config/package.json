@@ -1,0 +1,11 @@
+{
+  "name": "@neural-shield/config",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shared constants for Neural Shield AI (risk labels and colors, plan limits, scan-type metadata).",
+  "types": "./index.ts",
+  "main": "./index.ts",
+  "dependencies": {
+    "@neural-shield/types": "*"
+  }
+}
