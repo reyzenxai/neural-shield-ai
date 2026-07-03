@@ -26,6 +26,12 @@ export interface ScanHistoryItem {
   trust_score: number;
   risk_level: RiskLevel;
   created_at: string;
+  // Enriched fields fetched from DB (may be null if backend didn't store them)
+  confidence?: number;
+  scam_type?: string;
+  signals?: string[];
+  flags?: string[];
+  explanation?: string;
 }
 
 export interface Profile {
@@ -35,6 +41,10 @@ export interface Profile {
   plan: Plan;
   daily_scans_used: number;
   daily_scan_limit: number;
+  total_scans?: number;
+  created_at?: string;
+  phone?: string;
+  is_admin?: boolean;
 }
 
 export interface ScanTypeConfig {
@@ -52,7 +62,7 @@ export const SCAN_TYPES: ScanTypeConfig[] = [
     label: "Message",
     description: "SMS, WhatsApp, or any text",
     icon: "message-square",
-    placeholder: "Paste the suspicious message here...",
+    placeholder: "Paste the suspicious message here (min 10 characters)...",
     proOnly: false,
   },
   {
@@ -66,9 +76,9 @@ export const SCAN_TYPES: ScanTypeConfig[] = [
   {
     type: "email",
     label: "Email",
-    description: "Paste email content + sender",
+    description: "Paste full email body to analyze",
     icon: "mail",
-    placeholder: "From: sender@domain.com\n\nEmail body here...",
+    placeholder: "Paste the email content here — subject, body, any suspicious text...",
     proOnly: false,
   },
   {
@@ -76,7 +86,7 @@ export const SCAN_TYPES: ScanTypeConfig[] = [
     label: "Phone Number",
     description: "Verify any phone number",
     icon: "phone",
-    placeholder: "+91 98765 43210",
+    placeholder: "9876543210  or  +91 98765 43210",
     proOnly: false,
   },
   {
@@ -84,7 +94,7 @@ export const SCAN_TYPES: ScanTypeConfig[] = [
     label: "UPI / Payment",
     description: "Check UPI ID or payment request",
     icon: "credit-card",
-    placeholder: "someone@paytm or upi://pay?pa=...",
+    placeholder: "someone@paytm  or  name@okaxis",
     proOnly: false,
   },
   {

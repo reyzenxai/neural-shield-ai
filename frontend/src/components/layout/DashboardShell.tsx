@@ -17,6 +17,7 @@ import {
   MessageSquare,
   QrCode,
   Radar,
+  ShieldAlert,
   Smartphone,
   User,
   X,
@@ -112,6 +113,19 @@ function NavContents({ onNavigate }: { onNavigate?: () => void }) {
         <Link href="/profile" onClick={onNavigate} className={linkCls(pathname === "/profile")}>
           <User className="h-4 w-4" /> Profile
         </Link>
+
+        {profile?.is_admin && (
+          <Link
+            href="/admin/dashboard"
+            onClick={onNavigate}
+            className={cn(
+              linkCls(pathname.startsWith("/admin")),
+              "mt-1 border border-amber-500/20 bg-amber-500/5 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300",
+            )}
+          >
+            <ShieldAlert className="h-4 w-4" /> Admin Panel
+          </Link>
+        )}
       </nav>
 
       {/* Plan + account */}

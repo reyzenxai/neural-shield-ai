@@ -12,7 +12,7 @@ interface Props {
 
 export function Button({ title, onPress, loading, disabled, variant = "primary", style }: Props) {
   const bg = variant === "primary" ? colors.primary
-    : variant === "secondary" ? colors.surfaceAlt
+    : variant === "secondary" ? colors.surface
     : "transparent";
   const border = variant === "ghost" ? colors.border : "transparent";
 
