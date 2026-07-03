@@ -95,7 +95,7 @@ export async function fetchApiKeys(): Promise<ApiKey[]> {
 }
 
 /**
- * Generate a new API key. The full secret is returned ONCE — only its hash is
+ * Generate a new API key. The full secret is returned ONCE - only its hash is
  * stored. Format: `nsk_live_<48 hex>`.
  */
 export async function createApiKey(name: string): Promise<{ key: ApiKey; secret: string }> {

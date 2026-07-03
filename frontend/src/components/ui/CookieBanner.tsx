@@ -20,7 +20,7 @@ export function CookieBanner() {
   return (
     <div className="fixed bottom-4 left-4 right-4 z-50 flex flex-col gap-3 rounded-2xl border border-border bg-card/95 p-4 shadow-xl backdrop-blur sm:flex-row sm:items-center sm:justify-between md:left-auto md:right-6 md:max-w-md">
       <p className="text-xs text-muted-foreground">
-        We use essential cookies for authentication only — no tracking or ads.{" "}
+        We use essential cookies for authentication only - no tracking or ads.{" "}
         <Link href="/privacy" className="text-primary underline underline-offset-2">Privacy Policy</Link>
       </p>
       <button

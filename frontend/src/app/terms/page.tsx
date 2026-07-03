@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — Neural Shield AI",
+  title: "Terms of Service - Neural Shield AI",
   description: "Terms and conditions for using Neural Shield AI.",
 };
 
@@ -23,7 +23,7 @@ export default function TermsPage() {
 
         <section>
           <h2 className="mb-3 text-lg font-semibold text-foreground">2. What the Service Does</h2>
-          <p>Neural Shield AI analyses digital content (messages, URLs, emails, QR codes, phone numbers, UPI IDs, screenshots) and returns a risk assessment. Results are informational only — they are not legal, financial, or law-enforcement advice. You remain responsible for your own decisions.</p>
+          <p>Neural Shield AI analyses digital content (messages, URLs, emails, QR codes, phone numbers, UPI IDs, screenshots) and returns a risk assessment. Results are informational only - they are not legal, financial, or law-enforcement advice. You remain responsible for your own decisions.</p>
         </section>
 
         <section>
@@ -32,7 +32,7 @@ export default function TermsPage() {
             <li>You must be at least 13 years old to use the Service.</li>
             <li>You are responsible for keeping your password secure.</li>
             <li>You must provide accurate information when registering.</li>
-            <li>One account per person — do not share accounts.</li>
+            <li>One account per person - do not share accounts.</li>
           </ul>
         </section>
 

@@ -97,7 +97,7 @@ export function ApiKeys() {
           {secret && (
             <Alert tone="warning" className="mt-4">
               <div className="w-full">
-                <div className="font-medium text-foreground">Copy your key now — you won&apos;t see it again.</div>
+                <div className="font-medium text-foreground">Copy your key now - you won&apos;t see it again.</div>
                 <div className="mt-2 flex items-center gap-2">
                   <code className="flex-1 truncate rounded-lg bg-background/60 px-2 py-1 font-mono text-xs">{secret}</code>
                   <Button variant="secondary" size="sm" onClick={copySecret}>

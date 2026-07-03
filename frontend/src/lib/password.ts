@@ -6,7 +6,7 @@ export interface PasswordCheck {
 }
 
 export interface PasswordStrength {
-  /** 0–4 */
+  /** 0-4 */
   score: number;
   label: "Too weak" | "Weak" | "Fair" | "Strong" | "Very strong";
   checks: PasswordCheck[];

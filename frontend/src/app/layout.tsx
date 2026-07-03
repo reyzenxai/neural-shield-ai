@@ -23,14 +23,14 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Neural Shield AI — Stop Scams Before They Stop You",
+  title: "Neural Shield AI - Stop Scams Before They Stop You",
   description:
     "AI-powered fraud detection for messages, URLs, emails, QR codes, and payments. Built for India.",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_APP_URL ?? "https://frontend-cyan-five-59.vercel.app"
   ),
   openGraph: {
-    title: "Neural Shield AI — Stop Scams Before They Stop You",
+    title: "Neural Shield AI - Stop Scams Before They Stop You",
     description:
       "AI-powered fraud detection for messages, URLs, emails, QR codes, and payments. Built for India.",
     type: "website",
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Neural Shield AI — Stop Scams Before They Stop You",
+    title: "Neural Shield AI - Stop Scams Before They Stop You",
     description: "AI-powered scam detection for India. Scan messages, URLs, UPI IDs, QR codes instantly.",
     images: ["/api/og"],
   },

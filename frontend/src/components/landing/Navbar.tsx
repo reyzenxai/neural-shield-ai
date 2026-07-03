@@ -17,7 +17,7 @@ const NAV_LINKS = [
 
 function Logo() {
   return (
-    <a href="#top" className="flex items-center gap-2.5" aria-label="Neural Shield AI — home">
+    <a href="#top" className="flex items-center gap-2.5" aria-label="Neural Shield AI - home">
       <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-xl">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo.png" alt="" className="absolute inset-0 h-full w-full scale-[2.2] object-contain" aria-hidden="true" />

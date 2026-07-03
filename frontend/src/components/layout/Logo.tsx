@@ -10,7 +10,7 @@ export function Logo({ href = "/", className }: { href?: string; className?: str
     <Link
       href={href}
       className={cn("flex items-center gap-2.5", className)}
-      aria-label="Neural Shield AI — home"
+      aria-label="Neural Shield AI - home"
     >
       <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-xl">
         {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -108,7 +108,7 @@ export default function AdminUsersPage() {
                 {users.map((u) => (
                   <tr key={u.id} className="transition-colors hover:bg-card/50">
                     <td className="px-4 py-3">
-                      <div className="font-medium">{u.name ?? "—"}</div>
+                      <div className="font-medium">{u.name ?? "-"}</div>
                       <div className="text-xs text-muted-foreground">{u.email}</div>
                       {u.is_admin && (
                         <span className="inline-block rounded bg-primary/15 px-1.5 py-0.5 text-[10px] font-bold uppercase text-primary">Admin</span>
@@ -135,7 +135,7 @@ export default function AdminUsersPage() {
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-xs text-muted-foreground">
-            Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} of {total}
+            Showing {page * PAGE_SIZE + 1}-{Math.min((page + 1) * PAGE_SIZE, total)} of {total}
           </p>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>

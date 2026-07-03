@@ -39,7 +39,7 @@ const SEVERITY_DOT: Record<string, string> = {
 };
 
 /**
- * Interactive conversion demo (Section 4) — runs the local heuristic scorer with
+ * Interactive conversion demo (Section 4) - runs the local heuristic scorer with
  * no API call. "Try a sample" cycles through hardcoded Indian scam messages.
  */
 export function RiskDemo() {

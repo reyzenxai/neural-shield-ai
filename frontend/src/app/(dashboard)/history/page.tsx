@@ -200,7 +200,7 @@ export default function HistoryPage() {
       {filtered.length > PAGE_SIZE && (
         <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
           <span>
-            Showing {safePage * PAGE_SIZE + 1}–{Math.min((safePage + 1) * PAGE_SIZE, filtered.length)} of{" "}
+            Showing {safePage * PAGE_SIZE + 1}-{Math.min((safePage + 1) * PAGE_SIZE, filtered.length)} of{" "}
             {filtered.length}
           </span>
           <div className="flex items-center gap-2">
@@ -270,7 +270,7 @@ function Row({
               <div>
                 <div className="mb-1.5 text-xs uppercase tracking-widest text-muted-foreground">Input</div>
                 <p className="rounded-xl border border-border bg-background/40 p-3 text-sm text-foreground/90">
-                  {scan.input_text || scan.input_url || scan.input_file_path || "—"}
+                  {scan.input_text || scan.input_url || scan.input_file_path || "-"}
                 </p>
                 <div className="mt-3 flex flex-wrap gap-4 font-mono text-[11px] text-muted-foreground">
                   <span>scam {Math.round(scan.scam_probability * 100)}%</span>

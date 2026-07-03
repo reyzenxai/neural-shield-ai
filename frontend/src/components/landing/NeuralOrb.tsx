@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Shield } from "lucide-react";
 
 /**
- * Signature hero visual — rotating orbit rings, orbiting particles, pulse rings,
+ * Signature hero visual - rotating orbit rings, orbiting particles, pulse rings,
  * and a glowing glass core. Ported from the Lovable design system.
  */
 export function NeuralOrb() {

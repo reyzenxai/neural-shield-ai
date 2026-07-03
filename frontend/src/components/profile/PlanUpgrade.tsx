@@ -48,7 +48,7 @@ export function PlanUpgrade() {
 
   return (
     <div className="mt-4 space-y-3">
-      {success && <Alert tone="success">You&apos;re upgraded — enjoy your new plan! 🎉</Alert>}
+      {success && <Alert tone="success">You&apos;re upgraded - enjoy your new plan! 🎉</Alert>}
       {error && <Alert tone="danger">{error}</Alert>}
       <div className="grid gap-2 sm:grid-cols-2">
         {upgrades.map((p) => (

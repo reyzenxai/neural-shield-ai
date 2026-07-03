@@ -14,8 +14,8 @@ import { Button } from "@/components/ui/Button";
 export function ProScannerNotice({ kind }: { kind: "screenshot" | "qr" }) {
   const copy =
     kind === "screenshot"
-      ? { what: "Screenshot OCR", hint: "Upload a screenshot — we'll extract the text and analyze it." }
-      : { what: "QR Code decoding", hint: "Upload a QR image — we'll decode the link and scan it." };
+      ? { what: "Screenshot OCR", hint: "Upload a screenshot - we'll extract the text and analyze it." }
+      : { what: "QR Code decoding", hint: "Upload a QR image - we'll decode the link and scan it." };
 
   return (
     <div className="glass rounded-3xl p-5">

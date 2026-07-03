@@ -76,7 +76,7 @@ export async function GET() {
             marginBottom: "40px",
           }}
         >
-          Stop scams before they stop you — AI fraud detection built for India
+          Stop scams before they stop you - AI fraud detection built for India
         </div>
 
         {/* Feature pills */}

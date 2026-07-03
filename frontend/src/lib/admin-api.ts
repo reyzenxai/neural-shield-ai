@@ -1,6 +1,6 @@
 /**
  * Thin wrapper around the shared `api` axios client for admin endpoints.
- * Admin routes require an authenticated JWT with is_admin = true — the shared
+ * Admin routes require an authenticated JWT with is_admin = true - the shared
  * interceptor already attaches the Bearer token, so no extra setup needed.
  */
 import { api } from "@/lib/api";

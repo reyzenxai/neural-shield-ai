@@ -10,7 +10,7 @@ const MAX_BYTES = 10 * 1024 * 1024;
 
 /**
  * Upload panel for the image scanners (screenshot/QR): drag-drop or browse, with
- * preview and validation. Calls `onAnalyze(file)` — the page owns the result state.
+ * preview and validation. Calls `onAnalyze(file)` - the page owns the result state.
  */
 export function ImageUploader({
   kind,

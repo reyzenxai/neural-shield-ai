@@ -122,7 +122,7 @@ const TESTIMONIALS = [
 const FAQS: [string, string][] = [
   [
     "How accurate is the AI detection?",
-    "Neural Shield combines LLM reasoning with India-specific scam patterns to reach high accuracy on common fraud — KYC, UPI, OTP, lottery, and job scams. It always errs on the side of caution, because a missed scam costs far more than a false alarm.",
+    "Neural Shield combines LLM reasoning with India-specific scam patterns to reach high accuracy on common fraud - KYC, UPI, OTP, lottery, and job scams. It always errs on the side of caution, because a missed scam costs far more than a false alarm.",
   ],
   [
     "Is my data stored or shared?",
@@ -134,7 +134,7 @@ const FAQS: [string, string][] = [
   ],
   [
     "What is a Trust Score?",
-    "A 0–100 score: higher means safer. It is the inverse of scam probability and is paired with a clear risk level (Safe, Suspicious, Dangerous, or Critical) plus the exact red flags we found.",
+    "A 0-100 score: higher means safer. It is the inverse of scam probability and is paired with a clear risk level (Safe, Suspicious, Dangerous, or Critical) plus the exact red flags we found.",
   ],
   [
     "Can I use it via API?",
@@ -142,7 +142,7 @@ const FAQS: [string, string][] = [
   ],
   [
     "Is there a mobile app?",
-    "The web app is fully mobile-optimized today. Native Android and iOS apps are on the roadmap — join Free to be notified first.",
+    "The web app is fully mobile-optimized today. Native Android and iOS apps are on the roadmap - join Free to be notified first.",
   ],
 ];
 
@@ -152,7 +152,7 @@ export default function Home() {
       <div className="grid-bg pointer-events-none absolute inset-0 -z-10" />
       <Navbar />
 
-      {/* SECTION 1 — HERO */}
+      {/* SECTION 1 - HERO */}
       <section className="relative mx-auto max-w-6xl px-5 pb-24 pt-12 sm:pt-16">
         <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_1fr]">
           <div>
@@ -247,7 +247,7 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* SECTION 2 — FEATURES */}
+      {/* SECTION 2 - FEATURES */}
       <Section
         id="features"
         eyebrow="What we scan"
@@ -273,7 +273,7 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* SECTION 3 — HOW IT WORKS */}
+      {/* SECTION 3 - HOW IT WORKS */}
       <Section
         id="how"
         eyebrow="How it works"
@@ -314,7 +314,7 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* SECTION 4 — RISK SCORE DEMO */}
+      {/* SECTION 4 - RISK SCORE DEMO */}
       <Section
         id="demo"
         eyebrow="Live demo"
@@ -323,12 +323,12 @@ export default function Home() {
             Try it now. <span className="text-gradient">No sign-up.</span>
           </>
         }
-        sub="Paste a suspicious message — or load a real Indian scam sample — and watch the risk score appear."
+        sub="Paste a suspicious message - or load a real Indian scam sample - and watch the risk score appear."
       >
         <RiskDemo />
       </Section>
 
-      {/* SECTION 5 — PRICING */}
+      {/* SECTION 5 - PRICING */}
       <Section
         id="pricing"
         eyebrow="Pricing"
@@ -383,7 +383,7 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* SECTION 6 — TESTIMONIALS */}
+      {/* SECTION 6 - TESTIMONIALS */}
       <Section
         eyebrow="Loved by the cautious"
         title={
@@ -423,7 +423,7 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* SECTION 7 — FAQ */}
+      {/* SECTION 7 - FAQ */}
       <Section
         id="faq"
         eyebrow="FAQ"
@@ -461,7 +461,7 @@ export default function Home() {
             <span className="text-gradient">run it through us.</span>
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
-            Before you click, reply, or pay anyone online — let Neural Shield check it first.
+            Before you click, reply, or pay anyone online - let Neural Shield check it first.
           </p>
           <Button asChild variant="primary" size="lg" className="mt-8">
             <a href="#demo">

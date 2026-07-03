@@ -56,7 +56,7 @@ export default function DashboardPage() {
             <StatCard icon={Activity} label="Total scans" value={String(stats.total)} tone="primary" />
             <StatCard icon={AlertTriangle} label="Scams caught" value={String(stats.scamsCaught)} tone="danger" />
             <StatCard icon={ShieldCheck} label="Today's usage" value={todayUsage} hint={`${plan} plan`} tone="success" />
-            <StatCard icon={Gauge} label="Avg trust score" value={String(stats.avgTrust)} hint="0–100" tone="secondary" />
+            <StatCard icon={Gauge} label="Avg trust score" value={String(stats.avgTrust)} hint="0-100" tone="secondary" />
           </>
         )}
       </div>

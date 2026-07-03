@@ -10,10 +10,10 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        // Pill CTA — the Lovable hero button: glowing primary that scales on hover.
+        // Pill CTA - the Lovable hero button: glowing primary that scales on hover.
         primary:
           "rounded-full bg-primary text-primary-foreground font-semibold glow-primary hover:scale-[1.03]",
-        // Pill secondary CTA — glassy outline.
+        // Pill secondary CTA - glassy outline.
         secondary:
           "rounded-full border border-border bg-card/40 text-foreground/90 backdrop-blur hover:border-primary/40",
         ghost:

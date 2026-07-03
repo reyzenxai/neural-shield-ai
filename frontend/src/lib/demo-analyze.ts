@@ -12,8 +12,8 @@ export type DemoFlag = {
 };
 
 export type DemoResult = {
-  scamProbability: number; // 0–100
-  trustScore: number; // 0–100
+  scamProbability: number; // 0-100
+  trustScore: number; // 0-100
   riskLevel: DemoRiskLevel;
   scamType: string;
   flags: DemoFlag[];
@@ -38,7 +38,7 @@ const RULES: Rule[] = [
     test: /\b(otp|cvv|pin|password|upi pin|mpin)\b/i,
     weight: 32,
     type: "UPI / OTP fraud",
-    flag: { label: "Requests OTP, PIN or CVV — never share these", severity: "danger" },
+    flag: { label: "Requests OTP, PIN or CVV - never share these", severity: "danger" },
   },
   {
     test: /(bit\.ly|tinyurl|t\.co|cutt\.ly|rb\.gy|is\.gd|\.xyz|\.top|\.win|\.click)/i,
@@ -65,7 +65,7 @@ const RULES: Rule[] = [
     test: /\b(work from home|part[- ]?time job|earn ₹?\d|daily income|registration fee|joining fee)\b/i,
     weight: 20,
     type: "Job fraud",
-    flag: { label: "Job offer with up-front fee — a classic job scam", severity: "danger" },
+    flag: { label: "Job offer with up-front fee - a classic job scam", severity: "danger" },
   },
   {
     test: /\b(loan|pre-?approved|instant loan|processing fee)\b/i,
@@ -113,7 +113,7 @@ export function demoAnalyze(text: string): DemoResult {
       ? "Do NOT share any OTP, PIN or personal details. Do not click the link. Block and report the sender."
       : riskLevel === "suspicious"
         ? "Be careful. Verify the sender through an official app or helpline before responding."
-        : "Looks safe — but always confirm money requests through an independent channel.";
+        : "Looks safe - but always confirm money requests through an independent channel.";
 
   return { scamProbability, trustScore, riskLevel, scamType, flags, recommendation };
 }

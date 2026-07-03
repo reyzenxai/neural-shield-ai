@@ -25,7 +25,7 @@ function toScanError(err: unknown): ScanError {
     // API is down, or a CORS rejection). "Network Error" alone is confusing.
     if (!err.response) {
       return new ScanError(
-        "Couldn't reach the analysis server. Check your connection and try again — if it persists, the API may be down or blocking this origin (CORS).",
+        "Couldn't reach the analysis server. Check your connection and try again - if it persists, the API may be down or blocking this origin (CORS).",
         undefined,
         err.code,
       );
@@ -53,7 +53,7 @@ async function post(path: string, body: Record<string, unknown>): Promise<SavedS
   }
 }
 
-/** Multipart upload (image scanners) — uses fetch so the browser sets the boundary. */
+/** Multipart upload (image scanners) - uses fetch so the browser sets the boundary. */
 async function postFile(path: string, file: File): Promise<SavedScan> {
   const headers: Record<string, string> = {};
   if (isSupabaseConfigured) {

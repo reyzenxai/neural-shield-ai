@@ -57,7 +57,7 @@ export function computeStats(scans: ScanRowWithFlags[]): ScanStats {
 
 /** Short preview of a scan's input for tables. */
 export function scanPreview(scan: ScanRowWithFlags): string {
-  const raw = scan.input_text || scan.input_url || scan.input_file_path || "—";
+  const raw = scan.input_text || scan.input_url || scan.input_file_path || "-";
   return raw.length > 64 ? `${raw.slice(0, 64)}…` : raw;
 }
 

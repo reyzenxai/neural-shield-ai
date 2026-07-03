@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — Neural Shield AI",
+  title: "Privacy Policy - Neural Shield AI",
   description: "How Neural Shield AI collects, uses, and protects your data.",
 };
 
@@ -27,7 +27,7 @@ export default function PrivacyPage() {
             <li><strong>Account data:</strong> email address, name, and plan type when you sign up.</li>
             <li><strong>Scan content:</strong> text, URLs, phone numbers, or UPI IDs you submit for analysis. We store these to show you your scan history.</li>
             <li><strong>Usage data:</strong> number of scans, scan timestamps, risk results.</li>
-            <li><strong>Device data:</strong> browser type, IP address, and user agent — collected automatically for security and error monitoring (via Sentry).</li>
+            <li><strong>Device data:</strong> browser type, IP address, and user agent - collected automatically for security and error monitoring (via Sentry).</li>
           </ul>
           <p className="mt-3">We do <strong>not</strong> collect passwords (handled by Supabase Auth), payment card numbers (handled by Razorpay), or biometric data.</p>
         </section>
@@ -47,12 +47,12 @@ export default function PrivacyPage() {
           <h2 className="mb-3 text-lg font-semibold text-foreground">4. Data Sharing</h2>
           <p>We share your data with the following third-party services only as needed to operate the platform:</p>
           <ul className="list-disc space-y-1 pl-5 mt-2">
-            <li><strong>Supabase</strong> — database and authentication (servers in EU/US).</li>
-            <li><strong>Vercel</strong> — hosting and serverless functions.</li>
-            <li><strong>Anthropic / OpenRouter</strong> — AI analysis (scan content sent for processing; not stored by them).</li>
-            <li><strong>Sentry</strong> — error monitoring (error messages and stack traces only).</li>
-            <li><strong>Razorpay</strong> — payment processing.</li>
-            <li><strong>Threat Intelligence APIs</strong> (VirusTotal, Google Safe Browsing, etc.) — URLs and indicators submitted for scanning.</li>
+            <li><strong>Supabase</strong> - database and authentication (servers in EU/US).</li>
+            <li><strong>Vercel</strong> - hosting and serverless functions.</li>
+            <li><strong>Anthropic / OpenRouter</strong> - AI analysis (scan content sent for processing; not stored by them).</li>
+            <li><strong>Sentry</strong> - error monitoring (error messages and stack traces only).</li>
+            <li><strong>Razorpay</strong> - payment processing.</li>
+            <li><strong>Threat Intelligence APIs</strong> (VirusTotal, Google Safe Browsing, etc.) - URLs and indicators submitted for scanning.</li>
           </ul>
           <p className="mt-3">We do not sell your data to advertisers or data brokers.</p>
         </section>
@@ -81,7 +81,7 @@ export default function PrivacyPage() {
 
         <section>
           <h2 className="mb-3 text-lg font-semibold text-foreground">8. Security</h2>
-          <p>All data is encrypted in transit (TLS 1.2+) and at rest. Database access is protected by Row Level Security (RLS) — each user can only access their own data. Admin access is separately gated by role-based controls.</p>
+          <p>All data is encrypted in transit (TLS 1.2+) and at rest. Database access is protected by Row Level Security (RLS) - each user can only access their own data. Admin access is separately gated by role-based controls.</p>
         </section>
 
         <section>
