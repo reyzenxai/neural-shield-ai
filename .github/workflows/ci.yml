@@ -24,7 +24,10 @@ jobs:
           node-version: "20"
           cache: "npm"
           cache-dependency-path: package-lock.json
-      - run: npm ci
+      # npm install (not ci) so the Linux runner resolves its own platform-specific
+      # native optional deps (lightningcss, swc). The lockfile is generated on a
+      # different OS, and npm ci does not reliably install cross-platform optionals.
+      - run: npm install --no-audit --no-fund
       - run: npm run type-check --workspace=frontend
       - run: npm run lint --workspace=frontend
       - run: npm run build --workspace=frontend
@@ -43,7 +46,10 @@ jobs:
           node-version: "20"
           cache: "npm"
           cache-dependency-path: package-lock.json
-      - run: npm ci
+      # npm install (not ci) so the Linux runner resolves its own platform-specific
+      # native optional deps (lightningcss, swc). The lockfile is generated on a
+      # different OS, and npm ci does not reliably install cross-platform optionals.
+      - run: npm install --no-audit --no-fund
       - run: npm run type-check --workspace=backend
       - run: npm run lint --workspace=backend
       - run: npm run test --workspace=backend
