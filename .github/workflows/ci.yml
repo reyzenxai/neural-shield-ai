@@ -11,23 +11,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # The repo is an npm workspace (frontend, backend, packages/*), so install once
+  # at the root and run each app's scripts through the workspace. Mobile and the
+  # extension build on their own and are not part of this workspace yet.
   frontend:
     name: Frontend
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: package-lock.json
       - run: npm ci
-      - run: npm run type-check
-      - run: npm run lint
-      - run: npm run build
+      - run: npm run type-check --workspace=frontend
+      - run: npm run lint --workspace=frontend
+      - run: npm run build --workspace=frontend
         env:
           # Public build-time values; the app guards missing Supabase env at runtime.
           NEXT_PUBLIC_API_URL: http://localhost:5000/api
@@ -36,18 +36,15 @@ jobs:
   backend:
     name: Backend
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
-          cache-dependency-path: backend/package-lock.json
+          cache-dependency-path: package-lock.json
       - run: npm ci
-      - run: npm run type-check
-      - run: npm run lint
-      - run: npm run test
-      - run: npm run build
+      - run: npm run type-check --workspace=backend
+      - run: npm run lint --workspace=backend
+      - run: npm run test --workspace=backend
+      - run: npm run build --workspace=backend
