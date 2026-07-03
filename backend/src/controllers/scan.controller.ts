@@ -4,7 +4,7 @@ import { config } from "../config";
 import { aiService } from "../services/ai.service";
 import { runEngine } from "../threat-engine";
 import { decodeQr, ocrImage } from "../services/extract.service";
-import { audit, checkAndConsumeDailyLimit, DailyLimitError, saveScan } from "../services/scan.service";
+import { audit, checkAndConsumeLimits, DailyLimitError, saveScan } from "../services/scan.service";
 import { getUserClient, recordApiScan } from "../services/supabase.service";
 import { success, failure } from "../utils/response";
 import { logger } from "../utils/logger";
@@ -53,7 +53,7 @@ async function runScan(
   const user = req.user as AuthUser;
   try {
     // Web (JWT) free users are metered; Business API-key calls are not metered here.
-    if (!req.apiKeyHash) await checkAndConsumeDailyLimit(getUserClient(req.userToken), user);
+    if (!req.apiKeyHash) await checkAndConsumeLimits(getUserClient(req.userToken), user);
 
     const result = await analyzeInput(scanType, aiInput);
     const saved = await persistScan(req, scanType, stored, result);

@@ -18,7 +18,7 @@ export type ScanType =
 
 export type RiskLevel = "safe" | "low" | "medium" | "high" | "critical";
 
-export type Plan = "free" | "pro" | "business";
+export type Plan = "free" | "individual" | "two_person" | "family" | "pro";
 
 export type FlagSeverity = "info" | "warning" | "danger";
 

@@ -38,9 +38,11 @@ const RISK_COLORS: Record<string, string> = {
 };
 
 const PLAN_COLORS: Record<string, string> = {
-  free:     "#a855f7",
-  pro:      "#3b82f6",
-  business: "#f59e0b",
+  free:       "#a855f7",
+  individual: "#3b82f6",
+  two_person: "#06b6d4",
+  family:     "#f59e0b",
+  pro:        "#22c55e",
 };
 
 interface StatCardProps {

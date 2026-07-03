@@ -30,16 +30,16 @@ export const RISK_COLORS: Record<string, string> = {
 };
 
 /**
- * Daily scan limit per plan, as shown to users in the clients. Note: the backend
- * currently enforces a free limit of 10 in scan.service.ts, which disagrees with
- * the 5 shown here. That drift is exactly what this shared value is meant to fix,
- * but the backend number should be reconciled deliberately rather than silently,
- * so it is left as is for now. See docs/refactoring-report.md.
+ * Legacy per-plan daily limit map. Superseded by the PLANS catalog below, which is
+ * the source of truth for quotas. Kept for older consumers; mirrors PLANS.dailyScans
+ * (Pro is unlimited, shown here as a large number).
  */
 export const PLAN_LIMITS: Record<Plan, number> = {
-  free: 5,
-  pro: 100,
-  business: 999999,
+  free: 10,
+  individual: 30,
+  two_person: 22,
+  family: 15,
+  pro: 999999,
 };
 
 export interface ScanTypeConfig {

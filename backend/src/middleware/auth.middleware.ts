@@ -35,7 +35,7 @@ let warnedDevMode = false;
  * locally. This bypass is hard-disabled in production.
  */
 export async function authenticate(req: Request, res: Response, next: NextFunction): Promise<void> {
-  // 1) API key auth (Business tier) — for programmatic access.
+  // 1) API key auth (Pro tier) - for programmatic access.
   const apiKey = extractApiKey(req);
   if (apiKey) {
     if (!isSupabaseConfigured) {
@@ -48,8 +48,8 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
       failure(res, "Invalid or revoked API key", 401);
       return;
     }
-    if (user.plan !== "business") {
-      failure(res, "API access requires the Business plan.", 403);
+    if (user.plan !== "pro") {
+      failure(res, "API access requires the Pro plan.", 403);
       return;
     }
     req.user = user;

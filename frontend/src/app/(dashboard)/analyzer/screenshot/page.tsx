@@ -10,7 +10,7 @@ import { scanner } from "@/services/scanner";
 
 export default function ScreenshotScannerPage() {
   const { profile } = useAuth();
-  const isPro = profile?.plan === "pro" || profile?.plan === "business";
+  const isPro = profile?.plan === "pro";
   const { result, loading, error, run } = useScanner();
 
   return (

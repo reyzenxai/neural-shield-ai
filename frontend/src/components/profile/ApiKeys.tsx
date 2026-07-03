@@ -18,13 +18,13 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api";
 
 export function ApiKeys() {
   const { profile } = useAuth();
-  const isBusiness = profile?.plan === "business";
+  const isPro = profile?.plan === "pro";
   const queryClient = useQueryClient();
 
   const { data: keys = [], isLoading, error: queryError } = useQuery({
     queryKey: ["api-keys"],
     queryFn: fetchApiKeys,
-    enabled: isBusiness,
+    enabled: isPro,
   });
 
   const [name, setName] = useState("");
@@ -70,16 +70,16 @@ export function ApiKeys() {
       <div className="flex items-center justify-between">
         <h2 className="font-display text-base font-semibold">API keys</h2>
         <Badge variant="accent" size="sm">
-          Business
+          Pro
         </Badge>
       </div>
 
-      {!isBusiness ? (
+      {!isPro ? (
         <div className="mt-4 grid place-items-center rounded-2xl border border-dashed border-border/70 px-6 py-10 text-center">
           <Lock className="mb-3 h-7 w-7 text-muted-foreground" />
-          <div className="text-sm font-medium">API access is a Business feature</div>
+          <div className="text-sm font-medium">API access is a Pro feature</div>
           <p className="mx-auto mt-1 max-w-sm text-xs text-muted-foreground">
-            Upgrade to Business for programmatic access (10,000 calls/month) and team dashboards.
+            Upgrade to Pro for programmatic access to the Neural Shield API.
           </p>
         </div>
       ) : (
