@@ -1,12 +1,12 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
 
-import { parseGsb } from "../src/engine/intel/gsb";
-import { normalizeForFeed, openphishMatch } from "../src/engine/intel/openphish";
-import { parsePhishtank } from "../src/engine/intel/phishtank";
-import { parseUrlhaus } from "../src/engine/intel/urlhaus";
-import { computeRisk } from "../src/engine/risk";
-import type { Signal } from "../src/engine/types";
+import { parseGsb } from "../src/threat-engine/intel/gsb";
+import { normalizeForFeed, openphishMatch } from "../src/threat-engine/intel/openphish";
+import { parsePhishtank } from "../src/threat-engine/intel/phishtank";
+import { parseUrlhaus } from "../src/threat-engine/intel/urlhaus";
+import { computeRisk } from "../src/threat-engine/risk";
+import type { Signal } from "../src/threat-engine/types";
 
 const ids = (s: Signal[]): string[] => s.map((x) => x.id);
 

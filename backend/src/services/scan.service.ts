@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { logger } from "../utils/logger";
 import type { AuthUser, SavedScan, ScanResult, ScanType } from "../types";
-import type { Signal } from "../engine/types";
+import type { Signal } from "../threat-engine/types";
 
 /** A v2 engine result carries the deterministic risk score + the evidence trail. */
 type EngineExtras = { riskScore: number; confidence: number; engineVersion: string; signals: Signal[] };

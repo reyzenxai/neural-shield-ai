@@ -9,7 +9,7 @@ import {
   normalizeUpi,
   normalizeUrl,
   registrableDomain,
-} from "../src/engine/normalize";
+} from "../src/threat-engine/normalize";
 
 describe("registrableDomain (eTLD+1)", () => {
   it("handles plain two-label domains", () => {

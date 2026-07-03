@@ -1,9 +1,9 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
 
-import { signalFrom } from "../src/engine/config/weights";
-import { reputationSignals } from "../src/engine/reputation";
-import { normalizeUrl } from "../src/engine/normalize";
+import { signalFrom } from "../src/threat-engine/config/weights";
+import { reputationSignals } from "../src/threat-engine/reputation";
+import { normalizeUrl } from "../src/threat-engine/normalize";
 
 const entity = normalizeUrl("http://evil-phish.xyz/login");
 

@@ -2,8 +2,8 @@ import type { Request, Response } from "express";
 import { z } from "zod";
 
 import { config } from "../config";
-import { runEngine } from "../engine";
-import { BAND_THRESHOLDS, ENGINE_VERSION } from "../engine/config/weights";
+import { runEngine } from "../threat-engine";
+import { BAND_THRESHOLDS, ENGINE_VERSION } from "../threat-engine/config/weights";
 import { failure, success } from "../utils/response";
 import { logger } from "../utils/logger";
 import type { ScanType } from "../types";

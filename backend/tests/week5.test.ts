@@ -6,13 +6,13 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { signalFrom, WEIGHTS, ENGINE_VERSION } from "../src/engine/config/weights";
-import { runRules, runUpiRules, runPhoneRules, BRAND_RE } from "../src/engine/rules";
-import { extractEntities, parseUpiIntent, normalizeEmail, normalizePhone, normalizeUpi } from "../src/engine/normalize";
-import { parseVtStats } from "../src/engine/intel/virustotal";
-import { parseAbuseScore } from "../src/engine/intel/abuseipdb";
-import { checkDbl, checkZen } from "../src/engine/intel/spamhaus";
-import { checkSpf, checkDmarc } from "../src/engine/collectors/spf";
+import { signalFrom, WEIGHTS, ENGINE_VERSION } from "../src/threat-engine/config/weights";
+import { runRules, runUpiRules, runPhoneRules, BRAND_RE } from "../src/threat-engine/rules";
+import { extractEntities, parseUpiIntent, normalizeEmail, normalizePhone, normalizeUpi } from "../src/threat-engine/normalize";
+import { parseVtStats } from "../src/threat-engine/intel/virustotal";
+import { parseAbuseScore } from "../src/threat-engine/intel/abuseipdb";
+import { checkDbl, checkZen } from "../src/threat-engine/intel/spamhaus";
+import { checkSpf, checkDmarc } from "../src/threat-engine/collectors/spf";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Engine version

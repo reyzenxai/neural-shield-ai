@@ -1,14 +1,14 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
 
-import { IntelCache, verdictOf, withCache } from "../src/engine/cache";
-import { ageToSignals, parseRdapRegistration } from "../src/engine/collectors/rdap";
-import { certCheckToSignals } from "../src/engine/collectors/tls";
-import { runCollectors } from "../src/engine/collectors/registry";
-import { signalFrom } from "../src/engine/config/weights";
-import { normalizeUrl } from "../src/engine/normalize";
-import type { Collector } from "../src/engine/collectors/types";
-import type { Signal } from "../src/engine/types";
+import { IntelCache, verdictOf, withCache } from "../src/threat-engine/cache";
+import { ageToSignals, parseRdapRegistration } from "../src/threat-engine/collectors/rdap";
+import { certCheckToSignals } from "../src/threat-engine/collectors/tls";
+import { runCollectors } from "../src/threat-engine/collectors/registry";
+import { signalFrom } from "../src/threat-engine/config/weights";
+import { normalizeUrl } from "../src/threat-engine/normalize";
+import type { Collector } from "../src/threat-engine/collectors/types";
+import type { Signal } from "../src/threat-engine/types";
 
 const DAY = 86_400_000;
 const ids = (s: Signal[]): string[] => s.map((x) => x.id);
