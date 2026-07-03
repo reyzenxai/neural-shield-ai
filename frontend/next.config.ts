@@ -15,6 +15,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  // Workspace packages ship TypeScript source, so Next compiles them itself.
+  transpilePackages: ["@neural-shield/config", "@neural-shield/sdk", "@neural-shield/validation"],
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },
