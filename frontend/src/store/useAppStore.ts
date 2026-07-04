@@ -5,9 +5,26 @@ import type { Session, User } from "@supabase/supabase-js";
 
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { getDeviceId } from "@/lib/device";
 import type { Profile, SignupData } from "@/types";
 
 type AuthStatus = "loading" | "authenticated" | "unauthenticated";
+
+/** Claim the account for this browser (single-active-device enforcement). */
+async function claimDevice(): Promise<void> {
+  try {
+    const supabase = getSupabaseBrowserClient();
+    await supabase.rpc("app_claim_active_device", { p_device_id: getDeviceId() });
+  } catch {
+    /* best-effort — never block sign-in on this */
+  }
+}
+
+/** True if another device has claimed this account (this device was signed out elsewhere). */
+function deviceIsStale(profile: Profile | null): boolean {
+  const active = (profile as { active_device_id?: string | null } | null)?.active_device_id;
+  return Boolean(active && active !== getDeviceId());
+}
 
 interface AppState {
   user: User | null;
@@ -65,7 +82,22 @@ export const useAppStore = create<AppState>((set, get) => ({
       data: { session },
     } = await supabase.auth.getSession();
 
+    const signedOut = () =>
+      set({ user: null, session: null, profile: null, status: "unauthenticated", isAuthenticated: false });
+
     const profile = session?.user ? await loadProfile(session.user.id) : null;
+
+    // Single-device enforcement on load: if another device has claimed the account,
+    // sign out here; if no device has claimed it yet, claim it for this browser.
+    if (session?.user && profile) {
+      if (deviceIsStale(profile)) {
+        await supabase.auth.signOut();
+        signedOut();
+        return;
+      }
+      if (!(profile as { active_device_id?: string | null }).active_device_id) await claimDevice();
+    }
+
     set({
       session,
       user: session?.user ?? null,
@@ -74,10 +106,35 @@ export const useAppStore = create<AppState>((set, get) => ({
       isAuthenticated: Boolean(session?.user),
     });
 
-    supabase.auth.onAuthStateChange(async (_event, nextSession) => {
-      const nextProfile = nextSession?.user
-        ? await loadProfile(nextSession.user.id)
-        : null;
+    // When the tab regains focus, re-check: an old device signs itself out shortly
+    // after the account is used to sign in elsewhere.
+    if (typeof window !== "undefined") {
+      window.addEventListener("focus", async () => {
+        const current = get().user;
+        if (!current) return;
+        const fresh = await loadProfile(current.id);
+        if (deviceIsStale(fresh)) {
+          await supabase.auth.signOut();
+          signedOut();
+        } else if (fresh) {
+          set({ profile: fresh });
+        }
+      });
+    }
+
+    supabase.auth.onAuthStateChange(async (event, nextSession) => {
+      const nextProfile = nextSession?.user ? await loadProfile(nextSession.user.id) : null;
+
+      if (nextSession?.user && nextProfile) {
+        if (event === "SIGNED_IN") {
+          await claimDevice(); // this device just authenticated → take over the account
+        } else if (deviceIsStale(nextProfile)) {
+          await supabase.auth.signOut();
+          signedOut();
+          return;
+        }
+      }
+
       set({
         session: nextSession,
         user: nextSession?.user ?? null,
