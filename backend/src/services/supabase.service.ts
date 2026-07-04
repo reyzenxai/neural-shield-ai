@@ -45,18 +45,21 @@ export async function verifyToken(token: string): Promise<AuthUser | null> {
   const { data, error } = await client.auth.getUser(token);
   if (error || !data.user) return null;
 
-  // Read the profile as the user (RLS) to get their plan.
+  // Resolve the effective plan (own plan, or a shared plan the user is a member of)
+  // plus the admin flag, both as the user under RLS.
   const userClient = getUserClient(token);
-  const { data: profile } = userClient
-    ? await userClient.from("profiles").select("plan, is_admin").eq("id", data.user.id).maybeSingle()
-    : { data: null };
+  let plan: AuthUser["plan"] = "free";
+  let isAdmin = false;
+  if (userClient) {
+    const [{ data: eff }, { data: profile }] = await Promise.all([
+      userClient.rpc("app_effective_plan"),
+      userClient.from("profiles").select("is_admin").eq("id", data.user.id).maybeSingle(),
+    ]);
+    if (eff) plan = eff as AuthUser["plan"];
+    isAdmin = (profile as { is_admin?: boolean } | null)?.is_admin ?? false;
+  }
 
-  return {
-    id: data.user.id,
-    email: data.user.email ?? "",
-    plan: (profile?.plan as AuthUser["plan"]) ?? "free",
-    isAdmin: (profile as { is_admin?: boolean } | null)?.is_admin ?? false,
-  };
+  return { id: data.user.id, email: data.user.email ?? "", plan, isAdmin };
 }
 
 /**
