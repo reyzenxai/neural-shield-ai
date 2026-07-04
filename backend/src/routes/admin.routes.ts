@@ -15,4 +15,8 @@ router.get("/scans",        admin.getScans);
 router.get("/feedback",     admin.getFeedback);
 router.get("/logs",         admin.getLogs);
 
+router.get("/payments",              admin.getPayments);
+router.post("/payments/:id/approve", admin.approvePayment);
+router.post("/payments/:id/reject",  admin.rejectPayment);
+
 export default router;
