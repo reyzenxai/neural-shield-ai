@@ -76,7 +76,7 @@ erDiagram
   }
   subscriptions {
     uuid id PK
-    uuid user_id FK
+    uuid user_id FK UK
     text plan
     text status
     text razorpay_subscription_id
