@@ -2,14 +2,20 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { adminApi, type AdminScanRow } from "@/lib/admin-api";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { timeAgo } from "@/lib/utils";
+
+type ScanDetail = Record<string, unknown> & {
+  flags?: { flag: string; severity: string; description?: string }[];
+  feedback?: { is_accurate: boolean; review_status: string | null }[];
+};
 
 const PAGE_SIZE = 20;
 
@@ -53,6 +59,24 @@ export default function AdminScansPage() {
   }, [page, riskFilter, typeFilter, dateFrom, dateTo]);
 
   useEffect(() => { void load(); }, [load]);
+
+  const [detail, setDetail] = useState<ScanDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+
+  const openDetail = async (id: string) => {
+    setDetailLoading(true);
+    setDetail({});
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { data, error } = await supabase.rpc("admin_get_scan_detail", { p_scan_id: id });
+      if (error) throw error;
+      setDetail(data as ScanDetail);
+    } catch (e) {
+      setDetail({ error: (e as Error).message });
+    } finally {
+      setDetailLoading(false);
+    }
+  };
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
@@ -134,8 +158,9 @@ export default function AdminScansPage() {
                     <td className="px-4 py-3 text-muted-foreground">{(Number(s.scam_probability) * 100).toFixed(0)}%</td>
                     <td className="px-4 py-3 text-muted-foreground">{s.trust_score}</td>
                     <td className="px-4 py-3 text-xs text-muted-foreground">{timeAgo(s.created_at)}</td>
-                    <td className="px-4 py-3">
-                      <Link href={`/admin/users/${s.user_id}`} className="text-xs text-primary hover:underline">User</Link>
+                    <td className="whitespace-nowrap px-4 py-3">
+                      <button onClick={() => openDetail(s.id)} className="text-xs text-primary hover:underline">Details</button>
+                      <Link href={`/admin/users/${s.user_id}`} className="ml-3 text-xs text-primary hover:underline">User</Link>
                     </td>
                   </tr>
                 ))}
@@ -160,6 +185,78 @@ export default function AdminScansPage() {
           </div>
         </div>
       )}
+
+      {detail !== null && (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4"
+          onClick={() => setDetail(null)}
+        >
+          <div
+            className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-card p-5 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Scan detail</h2>
+              <button onClick={() => setDetail(null)} aria-label="Close" className="text-muted-foreground hover:text-foreground">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            {detailLoading ? (
+              <Skeleton className="h-40 rounded-xl" />
+            ) : "error" in detail ? (
+              <p className="text-sm text-red-400">{String(detail.error)}</p>
+            ) : (
+              <div className="space-y-3 text-sm">
+                <DetailRow label="User" value={`${detail.user_name ?? "-"} (${detail.user_email ?? "-"})`} />
+                <DetailRow label="Type" value={String(detail.scan_type ?? "-")} />
+                <DetailRow label="Risk" value={String(detail.risk_level ?? "-")} />
+                <DetailRow label="Scam probability" value={`${Math.round(Number(detail.scam_probability ?? 0) * 100)}%`} />
+                <DetailRow label="Trust score" value={String(detail.trust_score ?? "-")} />
+                <DetailRow label="Scam type" value={String(detail.scam_type ?? "-")} />
+                <DetailRow label="Model" value={String(detail.ai_model ?? "-")} />
+                {(Boolean(detail.input_text) || Boolean(detail.input_url)) && (
+                  <div>
+                    <div className="text-xs uppercase tracking-wider text-muted-foreground">Input</div>
+                    <pre className="mt-1 max-h-48 overflow-auto whitespace-pre-wrap break-words rounded-lg bg-background/60 p-3 text-xs">
+                      {String(detail.input_text || detail.input_url)}
+                    </pre>
+                  </div>
+                )}
+                {detail.flags && detail.flags.length > 0 && (
+                  <div>
+                    <div className="text-xs uppercase tracking-wider text-muted-foreground">Flags</div>
+                    <ul className="mt-1 space-y-1">
+                      {detail.flags.map((f, i) => (
+                        <li key={i} className="rounded-lg bg-background/60 p-2 text-xs">
+                          <span className="font-medium">{f.flag}</span>
+                          {f.description ? ` — ${f.description}` : ""}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {detail.feedback && detail.feedback.length > 0 && (
+                  <DetailRow
+                    label="Feedback"
+                    value={detail.feedback
+                      .map((fb) => (fb.is_accurate ? "Satisfied" : `Unsatisfied${fb.review_status ? ` (${fb.review_status})` : ""}`))
+                      .join(", ")}
+                  />
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DetailRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between gap-4 border-b border-border/50 pb-2">
+      <span className="text-xs uppercase tracking-wider text-muted-foreground">{label}</span>
+      <span className="text-right capitalize">{value}</span>
     </div>
   );
 }

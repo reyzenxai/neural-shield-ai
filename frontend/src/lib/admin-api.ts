@@ -65,6 +65,7 @@ export interface AdminFeedbackRow {
   comment: string | null;
   created_at: string;
   scan_id: string | null;
+  review_status: "pending" | "safe" | "unsafe" | null;
   user_email: string | null;
   user_name: string | null;
   scan_type: string | null;

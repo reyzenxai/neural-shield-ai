@@ -1,13 +1,20 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { ChevronLeft, ChevronRight, ThumbsDown, ThumbsUp } from "lucide-react";
+import { ChevronLeft, ChevronRight, ShieldCheck, ShieldX, ThumbsDown, ThumbsUp } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { adminApi, type AdminFeedbackRow } from "@/lib/admin-api";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { timeAgo } from "@/lib/utils";
+
+const REVIEW_BADGE: Record<string, string> = {
+  pending: "bg-amber-500/15 text-amber-400",
+  safe: "bg-green-500/15 text-green-400",
+  unsafe: "bg-red-500/15 text-red-400",
+};
 
 const PAGE_SIZE = 20;
 
@@ -34,6 +41,18 @@ export default function AdminFeedbackPage() {
 
   useEffect(() => { void load(); }, [load]);
 
+  // Admin marks an unsatisfied item safe (green) or unsafe (red).
+  const review = async (id: string, status: "safe" | "unsafe") => {
+    setItems((prev) => prev.map((f) => (f.id === id ? { ...f, review_status: status } : f)));
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { error } = await supabase.rpc("admin_review_feedback", { p_id: id, p_status: status });
+      if (error) throw error;
+    } catch {
+      void load(); // revert optimistic update on failure
+    }
+  };
+
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
@@ -58,11 +77,16 @@ export default function AdminFeedbackPage() {
               <div key={f.id} className="px-4 py-3 hover:bg-card/50">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 space-y-1">
-                    <div className="flex items-center gap-2 text-sm">
+                    <div className="flex flex-wrap items-center gap-2 text-sm">
                       {f.is_accurate ? (
-                        <span className="flex items-center gap-1 text-green-400"><ThumbsUp className="h-3.5 w-3.5" /> Accurate</span>
+                        <span className="flex items-center gap-1 text-green-400"><ThumbsUp className="h-3.5 w-3.5" /> Satisfied</span>
                       ) : (
-                        <span className="flex items-center gap-1 text-red-400"><ThumbsDown className="h-3.5 w-3.5" /> Inaccurate</span>
+                        <span className="flex items-center gap-1 text-red-400"><ThumbsDown className="h-3.5 w-3.5" /> Unsatisfied</span>
+                      )}
+                      {f.review_status && (
+                        <span className={`rounded px-1.5 py-0.5 text-xs font-medium capitalize ${REVIEW_BADGE[f.review_status] ?? ""}`}>
+                          {f.review_status === "pending" ? "Needs review" : f.review_status}
+                        </span>
                       )}
                       {f.scan_type && (
                         <span className="rounded bg-muted px-1.5 py-0.5 text-xs capitalize text-muted-foreground">{f.scan_type}</span>
@@ -77,11 +101,23 @@ export default function AdminFeedbackPage() {
                       <span>{timeAgo(f.created_at)}</span>
                     </div>
                   </div>
-                  {f.scam_probability !== null && (
-                    <span className="shrink-0 text-xs text-muted-foreground">
-                      {(Number(f.scam_probability) * 100).toFixed(0)}% scam
-                    </span>
-                  )}
+                  <div className="flex shrink-0 flex-col items-end gap-2">
+                    {f.scam_probability !== null && (
+                      <span className="text-xs text-muted-foreground">
+                        {(Number(f.scam_probability) * 100).toFixed(0)}% scam
+                      </span>
+                    )}
+                    {!f.is_accurate && f.review_status !== "safe" && f.review_status !== "unsafe" && (
+                      <div className="flex gap-1.5">
+                        <Button variant="outline" size="sm" className="border-green-500/40 text-green-400 hover:bg-green-500/10" onClick={() => review(f.id, "safe")}>
+                          <ShieldCheck className="h-3.5 w-3.5" /> Safe
+                        </Button>
+                        <Button variant="outline" size="sm" className="border-red-500/40 text-red-400 hover:bg-red-500/10" onClick={() => review(f.id, "unsafe")}>
+                          <ShieldX className="h-3.5 w-3.5" /> Unsafe
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
