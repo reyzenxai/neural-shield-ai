@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   Activity,
   FileText,
+  IndianRupee,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -25,6 +26,7 @@ const NAV = [
   { label: "Users",        href: "/admin/users",      icon: Users },
   { label: "Scans",        href: "/admin/scans",      icon: Activity },
   { label: "Feedback",     href: "/admin/feedback",   icon: MessageSquare },
+  { label: "Payments",     href: "/admin/payments",   icon: IndianRupee },
   { label: "Audit Logs",   href: "/admin/logs",       icon: ScrollText },
 ];
 

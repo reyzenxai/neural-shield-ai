@@ -178,3 +178,52 @@ export async function getLogs(req: Request, res: Response): Promise<void> {
   }
   success(res, data as Record<string, unknown>);
 }
+
+export async function getPayments(req: Request, res: Response): Promise<void> {
+  const client = getUserClient(req.userToken);
+  if (!client) {
+    success(res, { payments: [] });
+    return;
+  }
+  const status = (req.query.status as string | undefined) ?? "pending";
+  const { data, error } = await client.rpc("admin_list_payments", { p_status: status });
+  if (error) {
+    logger.error(`admin_list_payments failed: ${error.message}`);
+    failure(res, "Failed to fetch payments.", 500);
+    return;
+  }
+  success(res, { payments: data ?? [] });
+}
+
+export async function approvePayment(req: Request, res: Response): Promise<void> {
+  const client = getUserClient(req.userToken);
+  if (!client) {
+    failure(res, "Not available in dev mode.", 503);
+    return;
+  }
+  const { error } = await client.rpc("admin_approve_payment", { p_id: req.params.id });
+  if (error) {
+    logger.error(`admin_approve_payment failed: ${error.message}`);
+    failure(res, "Could not approve the payment.", 500);
+    return;
+  }
+  void auditLog(req, "approve_payment", "payment", req.params.id);
+  success(res, { ok: true });
+}
+
+export async function rejectPayment(req: Request, res: Response): Promise<void> {
+  const client = getUserClient(req.userToken);
+  if (!client) {
+    failure(res, "Not available in dev mode.", 503);
+    return;
+  }
+  const note = (req.body as { note?: string } | undefined)?.note ?? null;
+  const { error } = await client.rpc("admin_reject_payment", { p_id: req.params.id, p_note: note });
+  if (error) {
+    logger.error(`admin_reject_payment failed: ${error.message}`);
+    failure(res, "Could not reject the payment.", 500);
+    return;
+  }
+  void auditLog(req, "reject_payment", "payment", req.params.id);
+  success(res, { ok: true });
+}

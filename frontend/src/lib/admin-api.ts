@@ -84,6 +84,19 @@ export interface AdminLogRow {
   admin_name: string | null;
 }
 
+export interface AdminPaymentRow {
+  id: string;
+  user_id: string;
+  user_email: string;
+  plan: string;
+  amount_inr: number;
+  reference_note: string;
+  upi_reference: string | null;
+  screenshot_path: string | null;
+  status: string;
+  created_at: string;
+}
+
 export interface Paginated<T> {
   total: number;
   limit: number;
@@ -122,4 +135,13 @@ export const adminApi = {
     unwrap<{ logs: AdminLogRow[]; total: number }>(
       api.get("/admin/logs", { params }),
     ),
+
+  getPayments: (status = "pending") =>
+    unwrap<{ payments: AdminPaymentRow[] }>(api.get("/admin/payments", { params: { status } })),
+
+  approvePayment: (id: string) =>
+    unwrap<{ ok: boolean }>(api.post(`/admin/payments/${id}/approve`)),
+
+  rejectPayment: (id: string, note?: string) =>
+    unwrap<{ ok: boolean }>(api.post(`/admin/payments/${id}/reject`, { note })),
 };
