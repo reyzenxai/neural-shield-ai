@@ -26,6 +26,7 @@ import { Navbar } from "@/components/landing/Navbar";
 import { NeuralOrb } from "@/components/landing/NeuralOrb";
 import { HeroScanPreview } from "@/components/landing/HeroScanPreview";
 import { RiskDemo } from "@/components/landing/RiskDemo";
+import { Subscribe } from "@/components/landing/Subscribe";
 import { PLANS, PLAN_ORDER, planFeatureLines, type PlanId } from "@neural-shield/config";
 
 const fadeUp = {
@@ -445,6 +446,13 @@ export default function Home() {
               Scan for Free <ArrowRight className="h-4 w-4" />
             </a>
           </Button>
+
+          <div className="mx-auto mt-10 max-w-md border-t border-border/50 pt-8">
+            <div className="mb-3 text-sm font-medium text-muted-foreground">
+              Get product updates and new scam alerts by email
+            </div>
+            <Subscribe />
+          </div>
         </motion.div>
       </section>
 
