@@ -7,6 +7,7 @@ import {
   Check,
   Copy,
   Download,
+  Lightbulb,
   ShieldAlert,
   ShieldCheck,
   ThumbsDown,
@@ -16,6 +17,9 @@ import {
 import { Badge, riskBadgeVariant } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Progress } from "@/components/ui/Progress";
+import { useAuth } from "@/hooks/useAuth";
+import { submitScanFeedback } from "@/lib/feedback";
+import { exportScanPdf } from "@/lib/pdf";
 import { cn } from "@/lib/utils";
 import type { RiskLevel, SavedScan } from "@/types";
 
@@ -38,11 +42,19 @@ const SEVERITY_DOT: Record<string, string> = {
  * recommendation, and actions. Slides in and fills the meters on mount.
  */
 export function ResultCard({ result }: { result: SavedScan }) {
+  const { profile } = useAuth();
+  const isPro = profile?.plan === "pro";
   const meta = META[result.riskLevel];
   const Icon = meta.icon;
   const scamPct = Math.round(result.scamProbability * 100);
   const [feedback, setFeedback] = useState<"up" | "down" | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // Record satisfaction. "down" (unsatisfied) is what the admin console flags for review.
+  const sendFeedback = (satisfied: boolean) => {
+    setFeedback(satisfied ? "up" : "down");
+    if (result.scanId) void submitScanFeedback(result.scanId, satisfied).catch(() => {});
+  };
 
   const copy = async () => {
     try {
@@ -125,11 +137,27 @@ export function ResultCard({ result }: { result: SavedScan }) {
         </div>
       )}
 
-      {/* Recommendation */}
-      <div className="mt-4 rounded-xl border border-border bg-background/50 p-3 text-sm">
-        <span className="text-muted-foreground">Recommendation · </span>
-        {result.recommendation}
-      </div>
+      {/* Recommendation — highlighted as the primary takeaway */}
+      {result.recommendation && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.25 }}
+          className="mt-5 flex gap-3 rounded-2xl border-2 border-primary/50 bg-primary/10 p-4 shadow-[0_0_30px_-8px] shadow-primary/30"
+        >
+          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary/20 text-primary ring-1 ring-primary/40">
+            <Lightbulb className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <div className="text-xs font-semibold uppercase tracking-widest text-primary">
+              What you should do
+            </div>
+            <p className="mt-1 text-sm font-medium leading-relaxed text-foreground">
+              {result.recommendation}
+            </p>
+          </div>
+        </motion.div>
+      )}
 
       {/* Actions */}
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
@@ -138,16 +166,24 @@ export function ResultCard({ result }: { result: SavedScan }) {
             {copied ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
             {copied ? "Copied" : "Copy"}
           </Button>
-          <Button variant="ghost" size="sm" disabled title="PDF export is available on Pro">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => exportScanPdf(result)}
+            disabled={!isPro}
+            title={isPro ? "Export this report as PDF" : "PDF export is available on Pro"}
+          >
             <Download className="h-4 w-4" /> PDF
           </Button>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">Accurate?</span>
+          <span className="text-xs text-muted-foreground">
+            {feedback === "down" ? "Flagged for review" : feedback === "up" ? "Thanks!" : "Satisfied?"}
+          </span>
           <button
             type="button"
-            aria-label="Mark accurate"
-            onClick={() => setFeedback("up")}
+            aria-label="Satisfied"
+            onClick={() => sendFeedback(true)}
             className={cn(
               "grid h-8 w-8 place-items-center rounded-lg border border-border transition hover:border-primary/40",
               feedback === "up" && "border-success/50 text-success",
@@ -157,8 +193,8 @@ export function ResultCard({ result }: { result: SavedScan }) {
           </button>
           <button
             type="button"
-            aria-label="Mark inaccurate"
-            onClick={() => setFeedback("down")}
+            aria-label="Not satisfied"
+            onClick={() => sendFeedback(false)}
             className={cn(
               "grid h-8 w-8 place-items-center rounded-lg border border-border transition hover:border-primary/40",
               feedback === "down" && "border-danger/50 text-danger",

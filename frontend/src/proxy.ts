@@ -52,9 +52,14 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && isAuthRoute) {
+  // A signed-in user who returns to the site (root landing) or an auth page is sent
+  // straight to their dashboard. The Supabase session lives in cookies, so it
+  // survives browser restarts ("remember me") until the user signs out or clears
+  // site data — so returning visitors land on the dashboard, not the marketing page.
+  if (user && (isAuthRoute || pathname === "/")) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
+    url.search = "";
     return NextResponse.redirect(url);
   }
 

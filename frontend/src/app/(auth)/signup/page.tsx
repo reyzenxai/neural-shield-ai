@@ -9,6 +9,7 @@ import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { Label } from "@/components/ui/Label";
 import { OAuthButtons } from "@/components/auth/OAuthButtons";
 import { PasswordStrength } from "@/components/auth/PasswordStrength";
@@ -127,9 +128,8 @@ export default function SignupPage() {
 
         <div className="space-y-1.5">
           <Label htmlFor="password">Password</Label>
-          <Input
+          <PasswordInput
             id="password"
-            type="password"
             autoComplete="new-password"
             required
             value={password}
@@ -141,9 +141,8 @@ export default function SignupPage() {
 
         <div className="space-y-1.5">
           <Label htmlFor="confirm">Confirm password</Label>
-          <Input
+          <PasswordInput
             id="confirm"
-            type="password"
             autoComplete="new-password"
             required
             value={confirm}
@@ -163,13 +162,13 @@ export default function SignupPage() {
           />
           <span>
             I agree to the{" "}
-            <a href="#" className="text-primary hover:underline">
+            <Link href="/terms" className="text-primary hover:underline">
               Terms of Service
-            </a>{" "}
+            </Link>{" "}
             and{" "}
-            <a href="#" className="text-primary hover:underline">
+            <Link href="/privacy" className="text-primary hover:underline">
               Privacy Policy
-            </a>
+            </Link>
             .
           </span>
         </label>

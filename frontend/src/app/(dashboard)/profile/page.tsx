@@ -1,7 +1,9 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { MessageSquarePlus } from "lucide-react";
 
+import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ApiKeys } from "@/components/profile/ApiKeys";
 import { DangerZone } from "@/components/profile/DangerZone";
@@ -17,6 +19,9 @@ import { PLANS, type PlanId } from "@neural-shield/config";
 function planLabel(p: string): string {
   return (PLANS as Record<string, { name: string }>)[p]?.name ?? p;
 }
+
+// Replace this placeholder with the real Google Form URL once the form exists.
+const FEEDBACK_FORM_URL = "UPLOAD_GOOGLE_FORM_LINK_HERE";
 
 export default function ProfilePage() {
   const { profile } = useAuth();
@@ -56,6 +61,20 @@ export default function ProfilePage() {
 
         <ApiKeys />
         <Notifications />
+
+        {/* Feedback */}
+        <Card variant="glass" className="p-6">
+          <h2 className="font-display text-base font-semibold">Share feedback</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Tell us what&apos;s working and what we can improve — it takes a minute.
+          </p>
+          <Button asChild variant="secondary" size="md" className="mt-4">
+            <a href={FEEDBACK_FORM_URL} target="_blank" rel="noopener noreferrer">
+              <MessageSquarePlus className="h-4 w-4" /> Open feedback form
+            </a>
+          </Button>
+        </Card>
+
         <Security />
         <DangerZone />
       </div>
