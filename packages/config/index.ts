@@ -123,10 +123,12 @@ export interface PlanDef {
   priceInr: number;
   /** Total users including the owner. */
   seats: number;
-  /** Scans per user per month. null means unlimited. */
+  /** Scans per user per month. null means unlimited/disabled. */
   monthlyScans: number | null;
-  /** Scans per user per day across the allowed scanners. null means unlimited. */
+  /** Total scans per user per day across all scanners (used by Free). null = not used. */
   dailyScans: number | null;
+  /** Scans per user per day for EACH scanner type (paid plans). null = not used. */
+  dailyScansPerType: number | null;
   /** Which scanners this plan can use. */
   scanners: ScanType[];
   /** How many days of scan history the user can see. */
@@ -140,23 +142,23 @@ const ALL_SCANNERS: ScanType[] = [...TEXT_SCANNERS, "screenshot", "qr"];
 export const PLANS: Record<PlanId, PlanDef> = {
   free: {
     id: "free", name: "Free", priceInr: 0, seats: 1,
-    monthlyScans: null, dailyScans: 10, scanners: TEXT_SCANNERS, historyDays: 7, pdfExport: false,
+    monthlyScans: null, dailyScans: 10, dailyScansPerType: null, scanners: TEXT_SCANNERS, historyDays: 7, pdfExport: false,
   },
   individual: {
     id: "individual", name: "Individual", priceInr: 149, seats: 1,
-    monthlyScans: 150, dailyScans: 30, scanners: TEXT_SCANNERS, historyDays: 30, pdfExport: true,
+    monthlyScans: null, dailyScans: null, dailyScansPerType: 30, scanners: TEXT_SCANNERS, historyDays: 30, pdfExport: true,
   },
   two_person: {
     id: "two_person", name: "Two-person", priceInr: 219, seats: 2,
-    monthlyScans: 110, dailyScans: 22, scanners: TEXT_SCANNERS, historyDays: 30, pdfExport: true,
+    monthlyScans: null, dailyScans: null, dailyScansPerType: 22, scanners: TEXT_SCANNERS, historyDays: 30, pdfExport: true,
   },
   family: {
     id: "family", name: "Family", priceInr: 299, seats: 4,
-    monthlyScans: 75, dailyScans: 15, scanners: TEXT_SCANNERS, historyDays: 30, pdfExport: true,
+    monthlyScans: null, dailyScans: null, dailyScansPerType: 15, scanners: TEXT_SCANNERS, historyDays: 30, pdfExport: true,
   },
   pro: {
     id: "pro", name: "Pro", priceInr: 499, seats: 1,
-    monthlyScans: null, dailyScans: null, scanners: ALL_SCANNERS, historyDays: 60, pdfExport: true,
+    monthlyScans: null, dailyScans: null, dailyScansPerType: null, scanners: ALL_SCANNERS, historyDays: 60, pdfExport: true,
   },
 };
 
@@ -165,13 +167,13 @@ export const PLAN_ORDER: PlanId[] = ["free", "individual", "two_person", "family
 /** Human-readable feature bullets for a plan, used on the pricing page. */
 export function planFeatureLines(p: PlanDef): string[] {
   const lines: string[] = [];
-  if (p.monthlyScans == null && p.dailyScans == null) {
-    lines.push("Unlimited scans");
-  } else if (p.monthlyScans == null) {
+  if (p.dailyScansPerType != null) {
+    const perUser = p.seats > 1 ? " per user" : "";
+    lines.push(`${p.dailyScansPerType} scans / day on each scanner${perUser}`);
+  } else if (p.dailyScans != null) {
     lines.push(`${p.dailyScans} scans / day`);
   } else {
-    const perUser = p.seats > 1 ? " per user" : "";
-    lines.push(`${p.monthlyScans} scans / month${perUser} (${p.dailyScans} / day)`);
+    lines.push("Unlimited scans");
   }
   lines.push(
     p.scanners.length === 7

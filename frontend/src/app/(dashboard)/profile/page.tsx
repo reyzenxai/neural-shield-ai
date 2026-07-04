@@ -27,7 +27,7 @@ export default function ProfilePage() {
   const { profile } = useAuth();
   const { data: effectivePlan } = useQuery({ queryKey: ["effective-plan"], queryFn: getEffectivePlan });
   const plan = (effectivePlan ?? profile?.plan ?? "free") as PlanId;
-  const dailyCap = (PLANS[plan] ?? PLANS.free).dailyScans;
+  const planDef = PLANS[plan] ?? PLANS.free;
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -48,9 +48,15 @@ export default function ProfilePage() {
               <div className="mt-1 font-display text-xl font-semibold">{planLabel(plan)}</div>
             </div>
             <div className="rounded-xl border border-border bg-background/40 p-4">
-              <div className="text-xs uppercase tracking-widest text-muted-foreground">Scans today</div>
+              <div className="text-xs uppercase tracking-widest text-muted-foreground">
+                {planDef.dailyScansPerType != null ? "Daily limit" : "Scans today"}
+              </div>
               <div className="mt-1 font-display text-xl font-semibold">
-                {dailyCap == null ? "Unlimited" : `${profile?.daily_scan_count ?? 0} / ${dailyCap}`}
+                {planDef.dailyScansPerType != null
+                  ? `${planDef.dailyScansPerType} / scanner`
+                  : planDef.dailyScans == null
+                    ? "Unlimited"
+                    : `${profile?.daily_scan_count ?? 0} / ${planDef.dailyScans}`}
               </div>
             </div>
           </div>

@@ -36,25 +36,51 @@ function isMissingFunction(error: { code?: string; message?: string } | null): b
   return /could not find the function|does not exist/i.test(error.message ?? "");
 }
 
+const PER_TYPE_LIMIT_MESSAGE = (limit: number, scanType: ScanType) =>
+  `Daily limit reached for ${scanType} scans (${limit}/day). Try another scanner, try again tomorrow, or upgrade.`;
+
 /**
- * Enforce the plan's per-user daily and monthly scan caps, resetting each counter
- * when its window elapses. No-op for unlimited plans (Pro) or in dev (no client).
+ * Enforce the plan's scan caps for a single scan of `scanType`. No-op for unlimited
+ * plans (Pro) or in dev (no client).
  *
- * Consumption goes through the `app_consume_scan_quota` SECURITY DEFINER RPC
- * (migration 0013) so the increment is atomic and clients cannot reset their own
- * counters (the counter columns are revoked from client UPDATE). If the RPC is not
- * yet deployed (older DB), we fall back to the previous read-modify-write path so
- * metering keeps working across the migration window.
+ * - Paid plans are metered PER scanner type via `app_consume_scan_quota_by_type`
+ *   (migration 20260704231917): e.g. Individual gets 30 message + 30 url + … per day.
+ * - Free is metered by a single daily total via `app_consume_scan_quota` (migration 0013).
+ *
+ * Both RPCs are SECURITY DEFINER (atomic; clients cannot reset their own counters).
+ * If an RPC is not yet deployed, we fail open (allow) rather than block scanning.
  * @throws DailyLimitError when a cap is exceeded.
  */
 export async function checkAndConsumeLimits(
   client: SupabaseClient | null,
   user: AuthUser,
+  scanType: ScanType,
 ): Promise<void> {
   const rules = PLAN_RULES[user.plan] ?? PLAN_RULES.free;
-  if (rules.dailyScans == null && rules.monthlyScans == null) return; // unlimited (Pro)
+  if (rules.dailyScansPerType == null && rules.dailyScans == null && rules.monthlyScans == null) {
+    return; // unlimited (Pro)
+  }
   if (!client) return; // dev mode
 
+  // Paid plans: per-scanner-type daily cap.
+  if (rules.dailyScansPerType != null) {
+    const { data, error } = await client.rpc("app_consume_scan_quota_by_type", {
+      p_scan_type: scanType,
+      p_daily_limit: rules.dailyScansPerType,
+    });
+    if (!error) {
+      const decision = data as { allowed: boolean } | null;
+      if (decision && !decision.allowed) {
+        throw new DailyLimitError(PER_TYPE_LIMIT_MESSAGE(rules.dailyScansPerType, scanType));
+      }
+      return;
+    }
+    if (isMissingFunction(error)) return; // RPC not deployed yet — fail open
+    logger.warn(`app_consume_scan_quota_by_type failed for ${user.id}: ${error.message}`);
+    return;
+  }
+
+  // Free: single daily total across all scanners.
   const { data, error } = await client.rpc("app_consume_scan_quota", {
     p_daily_limit: rules.dailyScans ?? null,
     p_monthly_limit: rules.monthlyScans ?? null,

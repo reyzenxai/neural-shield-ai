@@ -52,8 +52,8 @@ async function runScan(
 ): Promise<void> {
   const user = req.user as AuthUser;
   try {
-    // Web (JWT) free users are metered; Business API-key calls are not metered here.
-    if (!req.apiKeyHash) await checkAndConsumeLimits(getUserClient(req.userToken), user);
+    // Web (JWT) users are metered per plan; Business API-key calls are not metered here.
+    if (!req.apiKeyHash) await checkAndConsumeLimits(getUserClient(req.userToken), user, scanType);
 
     const result = await analyzeInput(scanType, aiInput);
     const saved = await persistScan(req, scanType, stored, result);
