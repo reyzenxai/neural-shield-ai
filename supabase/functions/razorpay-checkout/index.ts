@@ -16,7 +16,16 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { createHmac } from "node:crypto";
 
-const PRICES: Record<string, number> = { pro: 29900, business: 99900 }; // paise
+// Paise. Mirrors the current plan catalog in packages/config (PLANS). The old map
+// referenced a removed `business` plan and a stale `pro` price; this keeps the
+// dormant gateway from mis-pricing or offering a non-existent plan if reactivated.
+// Keep in sync with packages/config PLANS.
+const PRICES: Record<string, number> = {
+  individual: 14900,
+  two_person: 21900,
+  family: 29900,
+  pro: 49900,
+};
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
