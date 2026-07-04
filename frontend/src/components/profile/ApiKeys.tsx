@@ -79,7 +79,7 @@ export function ApiKeys() {
           <Lock className="mb-3 h-7 w-7 text-muted-foreground" />
           <div className="text-sm font-medium">API access is a Pro feature</div>
           <p className="mx-auto mt-1 max-w-sm text-xs text-muted-foreground">
-            Upgrade to Pro for programmatic access to the Neural Shield API.
+            Upgrade your plan for programmatic access to the Neural Shield API.
           </p>
         </div>
       ) : (
