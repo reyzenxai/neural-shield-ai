@@ -13,6 +13,16 @@
 > closed in production; the dormant Razorpay `PRICES` map corrected to the current catalog; and the
 > "Upgrade to Pro" wording changed to "Upgrade Plan" across the app. A full security report set
 > lives in `docs/*security*` and `docs/owasp-report.md`; founder runbooks in `docs/founders/*`.
+>
+> **Update 2026-07-05 (migration reconciliation):** a production DB audit found that migration
+> `0013` was a **ghost** — recorded as applied in the remote ledger but its DDL never ran
+> (`app_consume_scan_quota` absent; counter columns still granted). So the scan-quota security fix is
+> **not yet live in production**; it is applied by the runbook in `docs/migration-reconciliation.md`
+> (`supabase migration repair --status reverted 0013` → `supabase db push`). The remote ledger uses
+> **numeric** versions `0001..0013` (not timestamps). The four duplicate-numbered migrations
+> (`scan_signals`, `plan_memberships`, `reputation_engine`, `plan_membership_functions`) were renamed
+> to timestamp versions to remove the collisions; all four are idempotent and already applied in prod.
+> See `docs/migration-reconciliation.md` for the full audit (advisors, storage, edge functions).
 
 ---
 
@@ -948,8 +958,11 @@ Razorpay code.
 - ~~**User-updatable scan counters**~~ **[RESOLVED — migration 0013]** consumption is now a
   `SECURITY DEFINER` function (`app_consume_scan_quota`) and the counter columns are revoked.
 - **OCR on serverless** — Tesseract needs a container host for reliability.
-- **Migration numbering collisions** (`0008/0009/0010/0011` each appear twice) — correct for immutable
-  migrations but confusing; a future consolidation/reset would help onboarding.
+- ~~**Migration numbering collisions** (`0008/0009/0010/0011` each appear twice).~~ **[RESOLVED
+  2026-07-05]** the four unrecorded duplicates were renamed to timestamp versions
+  (`2026…_scan_signals/reputation_engine/plan_memberships/plan_membership_functions`); the
+  ledger-matching file of each pair keeps its numeric name. A future squashed baseline is still
+  recommended for fresh-reset ordering fidelity (see `docs/migration-reconciliation.md` §5).
 - **Live schema drift:** columns the mobile app reads (`scans.signals/flags/explanation`,
   `profiles.phone`) are not in tracked migrations.
 
