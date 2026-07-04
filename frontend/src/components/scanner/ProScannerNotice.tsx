@@ -42,7 +42,7 @@ export function ProScannerNotice({ kind }: { kind: "screenshot" | "qr" }) {
       </p>
 
       <Button asChild variant="primary" size="md" className="mt-4 w-full">
-        <Link href="/dashboard">Upgrade to Pro</Link>
+        <Link href="/dashboard">Upgrade Plan</Link>
       </Button>
     </div>
   );

@@ -24,11 +24,27 @@ export class DailyLimitError extends Error {
   }
 }
 
+const DAILY_LIMIT_MESSAGE = (limit: number) =>
+  `Daily scan limit reached (${limit}/day). Try again tomorrow or upgrade.`;
+const MONTHLY_LIMIT_MESSAGE = (limit: number) =>
+  `Monthly scan limit reached (${limit}/month). Upgrade for more.`;
+
+/** A Supabase error that means the RPC does not exist on this DB yet. */
+function isMissingFunction(error: { code?: string; message?: string } | null): boolean {
+  if (!error) return false;
+  if (error.code === "PGRST202") return true; // PostgREST: function not found in schema cache
+  return /could not find the function|does not exist/i.test(error.message ?? "");
+}
+
 /**
  * Enforce the plan's per-user daily and monthly scan caps, resetting each counter
  * when its window elapses. No-op for unlimited plans (Pro) or in dev (no client).
- * Effective plan is the user's own plan for now; inheritance from a shared plan
- * (Two-person, Family) lands with the multi-user linking phase.
+ *
+ * Consumption goes through the `app_consume_scan_quota` SECURITY DEFINER RPC
+ * (migration 0013) so the increment is atomic and clients cannot reset their own
+ * counters (the counter columns are revoked from client UPDATE). If the RPC is not
+ * yet deployed (older DB), we fall back to the previous read-modify-write path so
+ * metering keeps working across the migration window.
  * @throws DailyLimitError when a cap is exceeded.
  */
 export async function checkAndConsumeLimits(
@@ -39,6 +55,38 @@ export async function checkAndConsumeLimits(
   if (rules.dailyScans == null && rules.monthlyScans == null) return; // unlimited (Pro)
   if (!client) return; // dev mode
 
+  const { data, error } = await client.rpc("app_consume_scan_quota", {
+    p_daily_limit: rules.dailyScans ?? null,
+    p_monthly_limit: rules.monthlyScans ?? null,
+  });
+
+  if (!error) {
+    const decision = data as { allowed: boolean; reason: "daily" | "monthly" | null } | null;
+    if (decision && !decision.allowed) {
+      if (decision.reason === "monthly" && rules.monthlyScans != null) {
+        throw new DailyLimitError(MONTHLY_LIMIT_MESSAGE(rules.monthlyScans));
+      }
+      throw new DailyLimitError(DAILY_LIMIT_MESSAGE(rules.dailyScans ?? 0));
+    }
+    return;
+  }
+
+  if (!isMissingFunction(error)) {
+    // Real DB/RPC error — fail open (matches prior behavior) but surface it.
+    logger.warn(`app_consume_scan_quota failed for ${user.id}: ${error.message}`);
+    return;
+  }
+
+  // Fallback: RPC not deployed yet — legacy read-modify-write metering.
+  await legacyConsumeLimits(client, user, rules);
+}
+
+/** Legacy per-user metering used only until migration 0013 is applied. */
+async function legacyConsumeLimits(
+  client: SupabaseClient,
+  user: AuthUser,
+  rules: { dailyScans: number | null; monthlyScans: number | null },
+): Promise<void> {
   const { data: profile, error } = await client
     .from("profiles")
     .select("daily_scan_count, daily_scan_reset_at, monthly_scan_count, monthly_scan_reset_at")
@@ -57,10 +105,10 @@ export async function checkAndConsumeLimits(
   const monthCount = monthExpired ? 0 : (profile.monthly_scan_count ?? 0);
 
   if (rules.dailyScans != null && dayCount >= rules.dailyScans) {
-    throw new DailyLimitError(`Daily scan limit reached (${rules.dailyScans}/day). Try again tomorrow or upgrade.`);
+    throw new DailyLimitError(DAILY_LIMIT_MESSAGE(rules.dailyScans));
   }
   if (rules.monthlyScans != null && monthCount >= rules.monthlyScans) {
-    throw new DailyLimitError(`Monthly scan limit reached (${rules.monthlyScans}/month). Upgrade for more.`);
+    throw new DailyLimitError(MONTHLY_LIMIT_MESSAGE(rules.monthlyScans));
   }
 
   await client

@@ -132,11 +132,11 @@ function NavContents({ onNavigate }: { onNavigate?: () => void }) {
       <div className="space-y-3 border-t border-border pt-4">
         {plan === "free" && (
           <div className="rounded-2xl border border-primary/30 bg-primary/5 p-3">
-            <div className="text-sm font-semibold">Upgrade to Pro</div>
+            <div className="text-sm font-semibold">Upgrade Plan</div>
             <p className="mt-0.5 text-xs text-muted-foreground">Unlimited scans + all 7 scanners.</p>
             <Button asChild variant="primary" size="sm" className="mt-2 w-full">
               <Link href="/profile" onClick={onNavigate}>
-                Go Pro
+                Upgrade
               </Link>
             </Button>
           </div>
