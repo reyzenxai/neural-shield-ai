@@ -40,8 +40,11 @@ export function createApp() {
         if (origin.startsWith("chrome-extension://") || origin.startsWith("moz-extension://")) {
           return callback(null, true);
         }
-        // No allow-list configured → reflect any origin (dev convenience).
-        if (!config.corsOrigins.length) return callback(null, true);
+        // No allow-list configured:
+        //  - production → fail closed (deny) so a missing FRONTEND_URL/APP_URL can
+        //    never silently reflect an arbitrary origin;
+        //  - non-production → reflect any origin (local dev convenience).
+        if (!config.corsOrigins.length) return callback(null, !config.isProd);
         // Compare normalized (trailing slash stripped) so config typos don't 403.
         const normalized = origin.replace(/\/+$/, "");
         callback(null, config.corsOrigins.includes(normalized));
