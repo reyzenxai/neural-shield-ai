@@ -25,6 +25,7 @@ export interface AdminUser {
   email: string;
   name: string | null;
   plan: string;
+  effective_plan: string;
   is_admin: boolean;
   avatar_url: string | null;
   created_at: string;
@@ -35,6 +36,7 @@ export interface AdminUser {
 
 export interface AdminUserDetail {
   profile: AdminUser;
+  effective_plan: string;
   total_scans: number;
   scans_by_risk: Record<string, number>;
   recent_scans: AdminScanRow[];

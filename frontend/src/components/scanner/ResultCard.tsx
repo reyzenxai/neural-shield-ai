@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   AlertTriangle,
@@ -18,6 +19,7 @@ import { Badge, riskBadgeVariant } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Progress } from "@/components/ui/Progress";
 import { useAuth } from "@/hooks/useAuth";
+import { getEffectivePlan } from "@/lib/members";
 import { submitScanFeedback } from "@/lib/feedback";
 import { exportScanPdf } from "@/lib/pdf";
 import { cn } from "@/lib/utils";
@@ -43,7 +45,10 @@ const SEVERITY_DOT: Record<string, string> = {
  */
 export function ResultCard({ result }: { result: SavedScan }) {
   const { profile } = useAuth();
-  const isPro = profile?.plan === "pro";
+  const { data: effectivePlan } = useQuery({ queryKey: ["effective-plan"], queryFn: getEffectivePlan });
+  const isPro = (effectivePlan ?? profile?.plan) === "pro";
+  // Branded model label per plan (the underlying provider model is not exposed to users).
+  const modelLabel = `${effectivePlan ?? profile?.plan ?? "free"}/neural-shield-ai`;
   const meta = META[result.riskLevel];
   const Icon = meta.icon;
   const scamPct = Math.round(result.scamProbability * 100);
@@ -169,7 +174,7 @@ export function ResultCard({ result }: { result: SavedScan }) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => exportScanPdf(result)}
+            onClick={() => exportScanPdf(result, modelLabel)}
             disabled={!isPro}
             title={isPro ? "Export this report as PDF" : "PDF export is available on Pro"}
           >
@@ -206,7 +211,7 @@ export function ResultCard({ result }: { result: SavedScan }) {
       </div>
 
       <div className="mt-4 flex items-center justify-between font-mono text-[11px] text-muted-foreground">
-        <span>model · {result.aiModel}</span>
+        <span>model · {modelLabel}</span>
         <span>{result.processingTimeMs} ms</span>
       </div>
     </motion.div>

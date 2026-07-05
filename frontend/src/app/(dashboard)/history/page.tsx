@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import {
   ChevronDown,
@@ -16,6 +17,7 @@ import { Checkbox } from "@/components/ui/Checkbox";
 import { Input } from "@/components/ui/Input";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useDeleteScans, useScans } from "@/hooks/useScans";
+import { getEffectivePlan } from "@/lib/members";
 import { scanPreview, scansToCsv } from "@/lib/scans";
 import { cn, timeAgo } from "@/lib/utils";
 import type { RiskLevel, ScanRowWithFlags, ScanType } from "@/types";
@@ -39,6 +41,8 @@ const SEVERITY_DOT: Record<string, string> = {
 export default function HistoryPage() {
   const { data: scans, isLoading } = useScans();
   const deleteScans = useDeleteScans();
+  const { data: effectivePlan } = useQuery({ queryKey: ["effective-plan"], queryFn: getEffectivePlan });
+  const modelLabel = `${effectivePlan ?? "free"}/neural-shield-ai`;
 
   const [search, setSearch] = useState("");
   const [risk, setRisk] = useState<RiskLevel | "all">("all");
@@ -188,6 +192,7 @@ export default function HistoryPage() {
                     onSelect={() => toggleOne(s.id)}
                     expanded={expanded === s.id}
                     onToggle={() => setExpanded((e) => (e === s.id ? null : s.id))}
+                    modelLabel={modelLabel}
                   />
                 ))}
               </tbody>
@@ -226,12 +231,14 @@ function Row({
   onSelect,
   expanded,
   onToggle,
+  modelLabel,
 }: {
   scan: ScanRowWithFlags;
   selected: boolean;
   onSelect: () => void;
   expanded: boolean;
   onToggle: () => void;
+  modelLabel: string;
 }) {
   return (
     <>
@@ -274,7 +281,7 @@ function Row({
                 </p>
                 <div className="mt-3 flex flex-wrap gap-4 font-mono text-[11px] text-muted-foreground">
                   <span>scam {Math.round(scan.scam_probability * 100)}%</span>
-                  <span>model · {scan.ai_model}</span>
+                  <span>model · {modelLabel}</span>
                   {scan.scam_type && <span>type · {scan.scam_type}</span>}
                 </div>
               </div>

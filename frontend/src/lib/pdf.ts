@@ -5,7 +5,7 @@ import type { SavedScan } from "@/types";
  * clean, standalone report in a new window and triggers the print dialog, where the
  * user chooses "Save as PDF". Zero external dependencies and works fully offline.
  */
-export function exportScanPdf(result: SavedScan): boolean {
+export function exportScanPdf(result: SavedScan, modelLabel?: string): boolean {
   const win = window.open("", "_blank", "noopener,noreferrer,width=820,height=1000");
   if (!win) return false; // popup blocked
 
@@ -42,7 +42,7 @@ export function exportScanPdf(result: SavedScan): boolean {
 </style></head>
 <body>
   <h1>Neural Shield AI — Scan Report</h1>
-  <div class="sub">Generated ${esc(generated)} · Engine ${esc(result.aiModel ?? "n/a")}</div>
+  <div class="sub">Generated ${esc(generated)} · Engine ${esc(modelLabel ?? "Neural Shield AI")}</div>
   <span class="verdict">${esc(result.riskLevel)}${result.scamType ? " · " + esc(result.scamType) : ""}</span>
   <div class="grid">
     <div class="card"><div class="k">Trust score</div><div class="v">${esc(result.trustScore)}/100</div></div>

@@ -119,7 +119,10 @@ export default function AdminUsersPage() {
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <Badge variant={PLAN_VARIANT[u.plan] ?? "default"} size="sm" className="uppercase">{u.plan}</Badge>
+                      <Badge variant={PLAN_VARIANT[u.effective_plan] ?? "default"} size="sm" className="uppercase">{u.effective_plan}</Badge>
+                      {u.effective_plan !== u.plan && (
+                        <span className="ml-1 text-[10px] uppercase text-muted-foreground">linked</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">{Number(u.total_scans).toLocaleString()}</td>
                     <td className="px-4 py-3 text-xs text-muted-foreground">{u.last_scan_at ? timeAgo(u.last_scan_at) : "Never"}</td>

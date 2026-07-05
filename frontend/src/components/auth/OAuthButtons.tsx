@@ -29,55 +29,37 @@ function GoogleIcon() {
   );
 }
 
-function GitHubIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden="true">
-      <path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.2.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 .1.8 1.3 1.8 1.8 1.5.8 2.9-.3 3.3-.6.1-.6.4-1.1.7-1.4-2.6-.3-5.3-1.3-5.3-5.8 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17 4.6 18 4.9 18 4.9c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.5-2.7 5.5-5.3 5.8.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6 4.6-1.5 7.9-5.8 7.9-10.9C23.5 5.7 18.3.5 12 .5z" />
-    </svg>
-  );
-}
-
 /**
- * Google + GitHub OAuth buttons. On click, Supabase redirects to the provider
- * and back to /auth/callback.
+ * Google OAuth button. On click, Supabase redirects to Google and back to
+ * /auth/callback.
  */
 export function OAuthButtons() {
   const { signInWithOAuth } = useAuth();
-  const [busy, setBusy] = useState<"google" | "github" | null>(null);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const onClick = async (provider: "google" | "github") => {
+  const onClick = async () => {
     setError(null);
-    setBusy(provider);
+    setBusy(true);
     try {
-      await signInWithOAuth(provider);
+      await signInWithOAuth("google");
       // success navigates away; no need to reset busy
     } catch (e) {
-      setBusy(null);
+      setBusy(false);
       setError(e instanceof Error ? e.message : "Could not start sign-in.");
     }
   };
 
   return (
     <div className="space-y-2">
-      <div className="grid grid-cols-2 gap-2">
-        <button
-          type="button"
-          onClick={() => onClick("google")}
-          disabled={busy !== null}
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border bg-card/40 text-sm font-medium transition hover:border-primary/40 disabled:opacity-50"
-        >
-          {busy === "google" ? <Spinner size={16} /> : <GoogleIcon />} Google
-        </button>
-        <button
-          type="button"
-          onClick={() => onClick("github")}
-          disabled={busy !== null}
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border bg-card/40 text-sm font-medium transition hover:border-primary/40 disabled:opacity-50"
-        >
-          {busy === "github" ? <Spinner size={16} /> : <GitHubIcon />} GitHub
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={busy}
+        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-card/40 text-sm font-medium transition hover:border-primary/40 disabled:opacity-50"
+      >
+        {busy ? <Spinner size={16} /> : <GoogleIcon />} Continue with Google
+      </button>
       {error && <p className="text-xs text-danger">{error}</p>}
     </div>
   );

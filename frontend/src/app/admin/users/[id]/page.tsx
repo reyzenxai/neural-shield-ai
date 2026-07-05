@@ -58,7 +58,7 @@ export default function AdminUserDetailPage() {
     );
   }
 
-  const { profile, total_scans, scans_by_risk, recent_scans, feedback_count, subscription } = data;
+  const { profile, effective_plan, total_scans, scans_by_risk, recent_scans, feedback_count, subscription } = data;
   const riskPie = Object.entries(scans_by_risk ?? {}).map(([name, value]) => ({ name, value }));
 
   return (
@@ -75,7 +75,10 @@ export default function AdminUserDetailPage() {
           <h1 className="text-xl font-bold">{profile.name ?? "Unnamed"}</h1>
           <p className="text-sm text-muted-foreground">{profile.email}</p>
           <div className="mt-1 flex gap-2">
-            <Badge variant="default" size="sm" className="uppercase">{profile.plan}</Badge>
+            <Badge variant="default" size="sm" className="uppercase">{effective_plan}</Badge>
+            {effective_plan !== profile.plan && (
+              <Badge variant="secondary" size="sm" className="uppercase">linked · own {profile.plan}</Badge>
+            )}
             {profile.is_admin && <Badge variant="secondary" size="sm">Admin</Badge>}
           </div>
         </div>
