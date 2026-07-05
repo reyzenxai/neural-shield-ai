@@ -193,9 +193,21 @@ export function runPhoneRules(entity: Entity, contextText?: string): Signal[] {
   const digits = entity.value.replace(/\D/g, "");
   const localDigits = digits.length >= 10 ? digits.slice(-10) : digits;
 
-  // +91 prefix but local digits don't start with 6–9 (TRAI mobile allocation)
-  if (digits.startsWith("91") && digits.length === 12 && !/^91[6-9]/.test(digits)) {
-    signals.push(signalFrom("phone.invalid_indian_mobile_format", "rule_engine", 0.95, { localFirstDigit: digits[2] }));
+  // Validate the local Indian subscriber number. A real Indian mobile is exactly 10
+  // digits starting 6–9 (TRAI allocation). Strip a +91 country code or a leading 0
+  // trunk prefix, then check. Anything else — too short (e.g. an 8-digit number), too
+  // long, or the wrong leading digit — is not a usable mobile number and is suspicious.
+  let local = digits;
+  if (local.startsWith("91") && local.length > 10) local = local.slice(2);
+  else if (local.startsWith("0") && local.length === 11) local = local.slice(1);
+
+  if (!/^[6-9]\d{9}$/.test(local)) {
+    signals.push(
+      signalFrom("phone.invalid_indian_mobile_format", "rule_engine", 0.9, {
+        normalized: entity.value,
+        localLength: local.length,
+      }),
+    );
   }
 
   // Premium-rate / suspicious Indian prefixes (140x = JioFi VOIP, 900x = premium)

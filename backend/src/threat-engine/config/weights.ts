@@ -8,7 +8,7 @@
 
 import type { OverrideKind, Signal, SignalCategory, SourceId, SourceTier } from "../types";
 
-export const ENGINE_VERSION = "trust-engine@2.1.4";
+export const ENGINE_VERSION = "trust-engine@2.1.5";
 
 /** Per-category caps for positive (risk-raising) contributions (docs/scoring-matrix.md §1). */
 export const CATEGORY_CAPS: Record<SignalCategory, number> = {
@@ -90,7 +90,7 @@ export const WEIGHTS: Record<string, WeightDef> = {
   "phone.intl_claiming_indian_bank": { category: "identity", weight: 20, tier: 2, label: "Non-Indian phone number paired with an Indian bank brand claim" },
   "phone.premium_rate_prefix": { category: "content", weight: 35, tier: 1, label: "Premium-rate or suspicious phone number prefix" },
   "phone.suspicious_sequence": { category: "content", weight: 20, tier: 2, label: "Phone number with suspicious repeated or sequential digits" },
-  "phone.invalid_indian_mobile_format": { category: "identity", weight: 30, tier: 1, label: "Number has Indian country code (+91) but the local digits are not a valid Indian mobile format (must start 6–9)" },
+  "phone.invalid_indian_mobile_format": { category: "identity", weight: 30, tier: 1, label: "Not a valid Indian mobile number (must be 10 digits starting 6–9)" },
 
   // ── threat-intel / blocklist (docs/scoring-matrix.md §3.1) — Week 2 collectors ──
   "ti.gsb.malware": { category: "blocklist", weight: 100, tier: 1, label: "On Google Safe Browsing malware list", override: "malicious" },

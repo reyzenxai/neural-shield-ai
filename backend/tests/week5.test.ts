@@ -18,8 +18,8 @@ import { checkSpf, checkDmarc } from "../src/threat-engine/collectors/spf";
 // Engine version
 // ─────────────────────────────────────────────────────────────────────────────
 describe("ENGINE_VERSION", () => {
-  it("is bumped to 2.1.4", () => {
-    assert.equal(ENGINE_VERSION, "trust-engine@2.1.4");
+  it("is bumped to 2.1.5", () => {
+    assert.equal(ENGINE_VERSION, "trust-engine@2.1.5");
   });
 });
 
@@ -396,6 +396,13 @@ describe("phone.invalid_indian_mobile_format", () => {
     const entity = normalizePhone("6001234567");
     const sigs = runPhoneRules(entity);
     assert.ok(!sigs.some((s) => s.id === "phone.invalid_indian_mobile_format"));
+  });
+
+  it("fires for a too-short number (e.g. 8 digits like 34589873)", () => {
+    const entity = normalizePhone("34589873");
+    const sigs = runPhoneRules(entity);
+    assert.ok(sigs.some((s) => s.id === "phone.invalid_indian_mobile_format"),
+      `expected invalid_indian_mobile_format, got: ${sigs.map((s) => s.id).join(", ")}`);
   });
 
   it("has weight 30 and tier 1 in the matrix", () => {
