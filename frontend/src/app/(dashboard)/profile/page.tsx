@@ -21,7 +21,7 @@ function planLabel(p: string): string {
 }
 
 // Replace this placeholder with the real Google Form URL once the form exists.
-const FEEDBACK_FORM_URL = "UPLOAD_GOOGLE_FORM_LINK_HERE";
+const FEEDBACK_FORM_URL = "https://forms.gle/gcTxK1jxwhKsww9k6";
 
 export default function ProfilePage() {
   const { profile } = useAuth();
