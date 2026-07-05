@@ -59,10 +59,14 @@ export async function signOutEverywhere(): Promise<void> {
   if (error) throw error;
 }
 
-/** Permanently delete the account via the service-role edge function. */
+/**
+ * Soft-delete the account: mark it for deletion (30-day restore window) and sign out.
+ * All data is preserved — logging in again within 30 days restores it with its history.
+ * After 30 days it is purged (see the login handler in useAppStore).
+ */
 export async function deleteAccount(): Promise<void> {
   const supabase = getSupabaseBrowserClient();
-  const { error } = await supabase.functions.invoke("delete-account", { method: "POST" });
+  const { error } = await supabase.rpc("app_soft_delete_account");
   if (error) throw error;
   await supabase.auth.signOut();
 }

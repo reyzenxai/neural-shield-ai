@@ -23,7 +23,7 @@ export function DangerZone() {
     setDeleting(true);
     try {
       await deleteAccount();
-      router.push("/signup");
+      router.push("/login?deleted=1");
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not delete your account.");
@@ -38,8 +38,9 @@ export function DangerZone() {
         <div className="flex-1">
           <h2 className="font-display text-base font-semibold text-danger">Danger zone</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Deleting your account permanently removes your profile, scans, history, and API keys.
-            This cannot be undone.
+            Deleting your account deactivates it and schedules permanent deletion in 30 days.
+            You can restore everything — scans, plan, and history — by logging back in within 30 days.
+            After 30 days it is deleted for good.
           </p>
           <Button variant="destructive" size="sm" className="mt-3" onClick={() => setOpen(true)}>
             Delete account
@@ -52,8 +53,9 @@ export function DangerZone() {
           <ModalHeader>
             <ModalTitle>Delete your account?</ModalTitle>
             <ModalDescription>
-              This permanently deletes everything. Type <span className="font-mono text-foreground">DELETE</span> to
-              confirm.
+              Your account will be deactivated and permanently deleted after 30 days. You can restore
+              it anytime within 30 days by logging back in. Type{" "}
+              <span className="font-mono text-foreground">DELETE</span> to confirm.
             </ModalDescription>
           </ModalHeader>
 
@@ -81,7 +83,7 @@ export function DangerZone() {
               disabled={confirmText !== "DELETE"}
               loading={deleting}
             >
-              Delete forever
+              Delete account
             </Button>
           </div>
         </ModalContent>

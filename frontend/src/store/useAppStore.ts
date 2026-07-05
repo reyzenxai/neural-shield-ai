@@ -60,6 +60,31 @@ async function loadProfile(userId: string): Promise<Profile | null> {
   return (data as Profile | null) ?? null;
 }
 
+/**
+ * Handle a soft-deleted account on login. Within the 30-day window the account is
+ * restored (data intact) and the fresh profile is returned. Past the window the
+ * account is purged via the delete-account edge function and "expired" is returned so
+ * the caller signs out. An active account is returned unchanged.
+ */
+async function handleSoftDelete(profile: Profile | null): Promise<Profile | null | "expired"> {
+  const del = (profile as { deleted_at?: string | null } | null)?.deleted_at;
+  const id = (profile as { id?: string } | null)?.id;
+  if (!profile || !del || !id) return profile;
+  const supabase = getSupabaseBrowserClient();
+  const { data } = await supabase.rpc("app_restore_account");
+  const status = (data as { status?: string } | null)?.status;
+  if (status === "restored") return await loadProfile(id);
+  if (status === "expired") {
+    try {
+      await supabase.functions.invoke("delete-account", { method: "POST" });
+    } catch {
+      /* best-effort purge — the account is expired regardless */
+    }
+    return "expired";
+  }
+  return profile;
+}
+
 export const useAppStore = create<AppState>((set, get) => ({
   user: null,
   session: null,
@@ -85,7 +110,18 @@ export const useAppStore = create<AppState>((set, get) => ({
     const signedOut = () =>
       set({ user: null, session: null, profile: null, status: "unauthenticated", isAuthenticated: false });
 
-    const profile = session?.user ? await loadProfile(session.user.id) : null;
+    let profile = session?.user ? await loadProfile(session.user.id) : null;
+
+    // Restore a soft-deleted account (within 30 days) or purge it (after 30 days).
+    if (session?.user && profile) {
+      const res = await handleSoftDelete(profile);
+      if (res === "expired") {
+        await supabase.auth.signOut();
+        signedOut();
+        return;
+      }
+      profile = res;
+    }
 
     // Single-device enforcement on load: if another device has claimed the account,
     // sign out here; if no device has claimed it yet, claim it for this browser.
@@ -123,9 +159,18 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
 
     supabase.auth.onAuthStateChange(async (event, nextSession) => {
-      const nextProfile = nextSession?.user ? await loadProfile(nextSession.user.id) : null;
+      let nextProfile = nextSession?.user ? await loadProfile(nextSession.user.id) : null;
 
       if (nextSession?.user && nextProfile) {
+        // Restore a soft-deleted account on sign-in, or purge it if the window passed.
+        const res = await handleSoftDelete(nextProfile);
+        if (res === "expired") {
+          await supabase.auth.signOut();
+          signedOut();
+          return;
+        }
+        nextProfile = res;
+
         if (event === "SIGNED_IN") {
           await claimDevice(); // this device just authenticated → take over the account
         } else if (deviceIsStale(nextProfile)) {

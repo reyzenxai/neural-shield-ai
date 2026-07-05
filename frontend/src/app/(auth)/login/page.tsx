@@ -62,6 +62,13 @@ function LoginForm() {
         </Alert>
       )}
 
+      {params.get("deleted") && !error && (
+        <Alert tone="warning" className="mb-4">
+          Your account is scheduled for deletion. Log in within 30 days to restore it with all your
+          history intact.
+        </Alert>
+      )}
+
       {error && (
         <Alert tone="danger" className="mb-4">
           {error}
