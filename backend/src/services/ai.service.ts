@@ -147,6 +147,28 @@ export function parseExplanation(raw: string): Explanation {
   };
 }
 
+/**
+ * Deterministic, band-aligned recommendation. The advice is derived from the same
+ * risk band as the score, so the two can never contradict each other (e.g. a "safe"
+ * 94/100 verdict never gets a "be cautious about sharing personal details" line).
+ * This keeps every part of the verdict complementing the others.
+ */
+export function bandRecommendation(riskLevel: RiskLevel): string {
+  switch (riskLevel) {
+    case "critical":
+      return "This is a scam. Do not respond, pay, or click any link, and never share an OTP, PIN, or personal details. Block and report the sender right away.";
+    case "high":
+      return "This is very likely a scam. Do not click any links or share any OTP, PIN, or personal details. Block and report the sender.";
+    case "medium":
+      return "Treat this as suspicious. Verify the sender or link through an official app or helpline before you act, and never share an OTP, PIN, or personal details.";
+    case "low":
+      return "This looks mostly safe, but stay alert. Never share an OTP or PIN, and confirm any money request through an independent, official channel.";
+    case "safe":
+    default:
+      return "No scam indicators were found — this appears safe to proceed with. As always, never share your OTP or PIN, and confirm unexpected money requests independently.";
+  }
+}
+
 /** Infer an advisory scam-type label from the fired signal ids. */
 export function inferScamType(signalIds: string[]): string | null {
   const has = (frag: string) => signalIds.some((id) => id.includes(frag));
@@ -174,14 +196,11 @@ export function templatedExplanation(input: ExplainInput): Explanation {
           labels.length > 3 ? `, and ${labels.length - 3} more` : ""
         }.`;
 
-  const recommendation =
-    verdict.riskLevel === "critical" || verdict.riskLevel === "high"
-      ? "Do not share any OTP, PIN or personal details, and do not click any links. Block and report the sender."
-      : verdict.riskLevel === "medium"
-        ? "Be careful. Verify the sender through an official app or helpline before responding."
-        : "No strong red flags, but always confirm money requests through an independent channel.";
-
-  return { summary, recommendation, scamType: inferScamType(signals.map((s) => s.id)) };
+  return {
+    summary,
+    recommendation: bandRecommendation(verdict.riskLevel),
+    scamType: inferScamType(signals.map((s) => s.id)),
+  };
 }
 
 function buildExplainPrompt(input: ExplainInput): string {
@@ -288,7 +307,14 @@ export class AIService {
       if (!parsed.summary) return { ...templatedExplanation(input), aiModel: "templated" };
       // The engine owns scamType; only trust the model's label if the engine had none.
       const scamType = parsed.scamType ?? inferScamType(input.signals.map((s) => s.id));
-      return { ...parsed, scamType, aiModel: model };
+      // The recommendation is derived deterministically from the risk band (not the
+      // model), so the advice always matches the score. The model only writes the summary.
+      return {
+        summary: parsed.summary,
+        recommendation: bandRecommendation(input.verdict.riskLevel),
+        scamType,
+        aiModel: model,
+      };
     } catch (err) {
       logger.warn(`AI explain failed, using templated summary: ${err instanceof Error ? err.message : String(err)}`);
       return { ...templatedExplanation(input), aiModel: "templated" };

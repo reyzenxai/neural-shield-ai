@@ -16,6 +16,12 @@ export async function GET(request: NextRequest) {
     if (supabase) {
       const { error } = await supabase.auth.exchangeCodeForSession(code);
       if (!error) {
+        // Email-confirmation flow: confirm the address, then send them to sign in
+        // (rather than dropping them straight into the app).
+        if (next === "/login") {
+          await supabase.auth.signOut();
+          return NextResponse.redirect(`${origin}/login?confirmed=1`);
+        }
         return NextResponse.redirect(`${origin}${next}`);
       }
     }

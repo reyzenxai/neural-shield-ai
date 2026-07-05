@@ -165,8 +165,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       password,
       options: {
         data: { name },
+        // After confirming their email, send the user to the login page (not straight in).
         emailRedirectTo:
-          typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : undefined,
+          typeof window !== "undefined" ? `${window.location.origin}/auth/callback?next=/login` : undefined,
       },
     });
     if (error) throw error;

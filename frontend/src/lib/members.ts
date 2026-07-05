@@ -38,6 +38,25 @@ export async function getEffectivePlan(): Promise<string> {
   return (data as string) ?? "free";
 }
 
+/**
+ * True if the current user is a LINKED MEMBER of someone else's shared plan
+ * (Two-person / Family). Such users inherit the owner's plan and cannot upgrade on
+ * their own — the owner must unlink them first. Readable via the member RLS policy.
+ */
+export async function getIsLinkedMember(): Promise<boolean> {
+  const supabase = getSupabaseBrowserClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return false;
+  const { data } = await supabase
+    .from("plan_memberships")
+    .select("slot")
+    .eq("member_id", user.id)
+    .limit(1);
+  return (data?.length ?? 0) > 0;
+}
+
 function friendlyMemberError(msg: string): string {
   if (msg.includes("email_change_locked"))
     return "You can change this member only once a month. It is locked until next month.";

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useAuth } from "@/hooks/useAuth";
 import { getMyLatestPayment, makeReference, submitPaymentRequest } from "@/lib/payments";
+import { getEffectivePlan, getIsLinkedMember } from "@/lib/members";
 import { PLANS, PLAN_ORDER, type PlanId } from "@neural-shield/config";
 
 const UPI_VPA = process.env.NEXT_PUBLIC_UPI_VPA ?? "";
@@ -29,6 +30,8 @@ export function PlanUpgrade() {
   const queryClient = useQueryClient();
 
   const { data: latest } = useQuery({ queryKey: ["my-payment"], queryFn: getMyLatestPayment });
+  const { data: isLinkedMember } = useQuery({ queryKey: ["is-linked-member"], queryFn: getIsLinkedMember });
+  const { data: effectivePlan } = useQuery({ queryKey: ["effective-plan"], queryFn: getEffectivePlan });
 
   const [selected, setSelected] = useState<PlanId | null>(null);
   const [reference] = useState(makeReference);
@@ -43,6 +46,20 @@ export function PlanUpgrade() {
       <div className="mt-4">
         <Alert tone="info">
           Your payment for the {latest.plan} plan is pending review. We will activate it shortly.
+        </Alert>
+      </div>
+    );
+  }
+
+  // Linked members inherit a shared plan and are not eligible to upgrade themselves —
+  // the plan owner must unlink them first (which returns them to Free).
+  if (isLinkedMember) {
+    const shared = (PLANS as Record<string, { name: string }>)[effectivePlan ?? "free"]?.name ?? "shared";
+    return (
+      <div className="mt-4">
+        <Alert tone="info">
+          You&apos;re on a shared {shared} plan. To change your own plan, ask the plan owner to
+          unlink your account first — you&apos;ll return to Free and can then upgrade.
         </Alert>
       </div>
     );

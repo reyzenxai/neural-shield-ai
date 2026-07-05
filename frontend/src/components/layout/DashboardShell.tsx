@@ -23,11 +23,14 @@ import {
   X,
 } from "lucide-react";
 
+import { useQuery } from "@tanstack/react-query";
+
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Logo } from "@/components/layout/Logo";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { getEffectivePlan, getIsLinkedMember } from "@/lib/members";
 
 const ANALYZERS = [
   { label: "Message", href: "/analyzer/message", icon: MessageSquare },
@@ -44,7 +47,12 @@ function NavContents({ onNavigate }: { onNavigate?: () => void }) {
   const router = useRouter();
   const { profile, user, signOut } = useAuth();
   const [analyzerOpen, setAnalyzerOpen] = useState(pathname.startsWith("/analyzer"));
-  const plan = profile?.plan ?? "free";
+  const { data: effectivePlan } = useQuery({ queryKey: ["effective-plan"], queryFn: getEffectivePlan });
+  const { data: isLinkedMember } = useQuery({ queryKey: ["is-linked-member"], queryFn: getIsLinkedMember });
+  // Show (and gate on) the effective plan. Linked members inherit a shared plan and
+  // cannot upgrade — the owner must unlink them first — so hide the upgrade CTA for them.
+  const displayPlan = effectivePlan ?? profile?.plan ?? "free";
+  const canUpgrade = !isLinkedMember && displayPlan === "free";
 
   const linkCls = (active: boolean) =>
     cn(
@@ -130,7 +138,7 @@ function NavContents({ onNavigate }: { onNavigate?: () => void }) {
 
       {/* Plan + account */}
       <div className="space-y-3 border-t border-border pt-4">
-        {plan === "free" && (
+        {canUpgrade && (
           <div className="rounded-2xl border border-primary/30 bg-primary/5 p-3">
             <div className="text-sm font-semibold">Upgrade Plan</div>
             <p className="mt-0.5 text-xs text-muted-foreground">Unlimited scans + all 7 scanners.</p>
@@ -154,7 +162,7 @@ function NavContents({ onNavigate }: { onNavigate?: () => void }) {
             <div className="min-w-0">
               <div className="truncate text-xs text-muted-foreground">{user?.email}</div>
               <Badge variant="default" size="sm" className="mt-1 uppercase">
-                {plan}
+                {displayPlan}
               </Badge>
             </div>
           </div>

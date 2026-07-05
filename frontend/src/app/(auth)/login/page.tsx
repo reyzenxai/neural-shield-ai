@@ -56,6 +56,12 @@ function LoginForm() {
         <span className="h-px flex-1 bg-border" />
       </div>
 
+      {params.get("confirmed") && !error && (
+        <Alert tone="info" className="mb-4">
+          Your email is confirmed — please sign in.
+        </Alert>
+      )}
+
       {error && (
         <Alert tone="danger" className="mb-4">
           {error}
