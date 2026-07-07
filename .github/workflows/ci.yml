@@ -12,8 +12,9 @@ concurrency:
 
 jobs:
   # The repo is an npm workspace (frontend, backend, packages/*), so install once
-  # at the root and run each app's scripts through the workspace. Mobile and the
-  # extension build on their own and are not part of this workspace yet.
+  # at the root and run each app's scripts through the workspace. The mobile app
+  # and Chrome extension now live in their own repos (neural-shield-app,
+  # neural-shield-extension) and are built there.
   frontend:
     name: Frontend
     runs-on: ubuntu-latest
